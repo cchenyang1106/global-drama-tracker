@@ -10,8 +10,9 @@ const app = express()
 const PORT = process.env.PORT || 3000
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8080'
 
-// API 反向代理
-app.use('/api', createProxyMiddleware({
+// API 反向代理 - 转发 /api/** 到后端，保留完整路径
+app.use(createProxyMiddleware({
+  pathFilter: '/api',
   target: BACKEND_URL,
   changeOrigin: true,
 }))
