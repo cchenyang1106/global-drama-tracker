@@ -8,13 +8,13 @@ export default {
 
 <style>
 page {
-  background-color: #0f172a;
-  color: #f1f5f9;
+  background-color: #fff5f7;
+  color: #4a2040;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .page-bg {
   min-height: 100vh;
-  background: #0f172a;
+  background: #fff5f7;
 }
 </style>

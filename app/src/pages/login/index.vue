@@ -5,13 +5,13 @@
       <text class="login-sub">找搭子 · 找到志同道合的伙伴</text>
 
       <view class="form-group">
-        <input class="form-input" v-model="form.phone" placeholder="手机号" type="number" maxlength="11" />
+        <input class="form-input" v-model="form.phone" placeholder="手机号" type="tel" maxlength="11" :adjust-position="true" />
       </view>
       <view class="form-group" v-if="isRegister">
-        <input class="form-input" v-model="form.nickname" placeholder="昵称（选填）" />
+        <input class="form-input" v-model="form.nickname" placeholder="昵称（选填）" type="text" />
       </view>
       <view class="form-group">
-        <input class="form-input" v-model="form.password" placeholder="密码（至少6位）" password />
+        <input class="form-input" v-model="form.password" placeholder="密码（至少6位）" type="safe-password" :password="true" />
       </view>
 
       <view class="submit-btn" @tap="handleSubmit">
@@ -68,7 +68,7 @@ async function handleSubmit() {
 .login-sub { font-size: 24rpx; color: #b8929e; display: block; margin-bottom: 48rpx; }
 
 .form-group { margin-bottom: 24rpx; }
-.form-input { background: #fff5f7; border-radius: 16rpx; padding: 24rpx; color: #4a2040; font-size: 28rpx; width: 100%; box-sizing: border-box; }
+.form-input { background: #fff5f7; border: 1px solid #fce4ec; border-radius: 16rpx; padding: 24rpx; color: #4a2040; font-size: 28rpx; width: 100%; box-sizing: border-box; }
 
 .submit-btn {
   background: linear-gradient(135deg, #f472b6, #c084fc);
