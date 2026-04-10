@@ -27,7 +27,8 @@
       <div v-if="photos.length > 0" class="photos-section">
         <span class="info-label">📸 照片</span>
         <div class="photos-grid">
-          <img v-for="(p, i) in photos" :key="i" :src="p" class="photo-img" @click="previewPhoto(p)" />
+          <el-image v-for="(p, i) in photos" :key="i" :src="p" :preview-src-list="photos" :initial-index="i"
+            fit="cover" class="photo-img" :preview-teleported="true" />
         </div>
       </div>
     </div>
@@ -43,10 +44,6 @@ import { getUserProfile } from '@/api/profile'
 const route = useRoute()
 const profile = ref(null)
 const photos = ref([])
-
-function previewPhoto(url) {
-  window.open(url, '_blank')
-}
 
 onMounted(async () => {
   try {
