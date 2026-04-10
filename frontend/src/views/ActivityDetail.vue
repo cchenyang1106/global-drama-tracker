@@ -13,7 +13,7 @@
       <h1 class="detail-title">{{ activity.title }}</h1>
 
       <div class="author-block" @click="$router.push(`/user/${activity.userId}`)">
-        <el-avatar :size="44" :src="activity.authorAvatar" style="background:#6366f1">
+        <el-avatar :size="44" :src="activity.authorAvatar" style="background:#f472b6">
           {{ (activity.authorName || '?').charAt(0) }}
         </el-avatar>
         <div>
@@ -115,7 +115,7 @@ onMounted(async () => {
 .detail-header { display: flex; gap: 8px; margin-bottom: 12px; }
 .detail-title { font-size: 22px; font-weight: 800; margin-bottom: 16px; }
 .author-block { display: flex; gap: 12px; align-items: center; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 10px; margin-bottom: 16px; cursor: pointer; }
-.author-block:hover { background: rgba(99,102,241,0.08); }
+.author-block:hover { background: rgba(244,114,182,0.08); }
 .ab-name { font-weight: 600; font-size: 15px; }
 .ab-sub { font-size: 12px; color: var(--text-muted); display: flex; gap: 8px; }
 .detail-body { font-size: 15px; line-height: 1.8; color: var(--text-secondary); margin-bottom: 16px; white-space: pre-wrap; }
@@ -125,7 +125,7 @@ onMounted(async () => {
 .detail-tags { display: flex; gap: 6px; flex-wrap: wrap; }
 .apply-section { background: var(--bg-card); border-radius: 12px; padding: 20px; margin-top: 16px; }
 .apply-section h3 { font-size: 16px; margin-bottom: 12px; }
-.login-tip { display: block; text-align: center; padding: 12px; background: linear-gradient(135deg,#6366f1,#8b5cf6); color: white; border-radius: 8px; font-weight: 600; }
+.login-tip { display: block; text-align: center; padding: 12px; background: linear-gradient(135deg,#f472b6,#c084fc); color: white; border-radius: 8px; font-weight: 600; }
 .owner-tip { text-align: center; color: var(--text-muted); }
 .loading-page { text-align: center; padding: 60px; color: var(--text-muted); }
 </style>

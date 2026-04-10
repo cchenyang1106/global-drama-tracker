@@ -5,7 +5,7 @@
       <el-tab-pane label="聊天" name="chats">
         <div v-if="chats.length === 0" class="empty">暂无聊天，去活动广场找搭子吧！</div>
         <div v-for="c in chats" :key="c.matchId" class="chat-item" @click="$router.push(`/chat/${c.matchId}`)">
-          <el-avatar :size="44" :src="c.partnerAvatar" style="background:#6366f1">
+          <el-avatar :size="44" :src="c.partnerAvatar" style="background:#f472b6">
             {{ (c.partnerName || '?').charAt(0) }}
           </el-avatar>
           <div class="chat-info">
@@ -111,7 +111,7 @@ onMounted(() => { loadChats(); loadReceived(); loadSent() })
 .empty { text-align: center; padding: 40px; color: var(--text-muted); }
 
 .chat-item { display: flex; gap: 12px; padding: 14px; border-radius: 10px; cursor: pointer; transition: background 0.2s; }
-.chat-item:hover { background: rgba(99,102,241,0.08); }
+.chat-item:hover { background: rgba(244,114,182,0.08); }
 .chat-info { flex: 1; min-width: 0; }
 .chat-top { display: flex; justify-content: space-between; }
 .chat-name { font-weight: 600; font-size: 15px; }

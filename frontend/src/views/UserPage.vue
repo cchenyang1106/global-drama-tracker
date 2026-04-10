@@ -3,7 +3,7 @@
     <el-button text @click="$router.back()" style="margin-bottom:12px">← 返回</el-button>
     <div class="user-card">
       <div class="user-top">
-        <el-avatar :size="72" :src="profile.avatarUrl" style="background:#6366f1;font-size:28px">
+        <el-avatar :size="72" :src="profile.avatarUrl" style="background:#f472b6;font-size:28px">
           {{ (profile.nickname || '?').charAt(0) }}
         </el-avatar>
         <div>

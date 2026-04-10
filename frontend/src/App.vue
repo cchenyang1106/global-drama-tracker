@@ -98,7 +98,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   z-index: 100;
-  background: rgba(15, 23, 42, 0.85);
+  background: rgba(255, 245, 247, 0.9);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border-color);
   height: 64px;
@@ -152,12 +152,12 @@ onMounted(() => {
 
 .nav-link:hover {
   color: var(--text-primary);
-  background: rgba(99, 102, 241, 0.1);
+  background: rgba(244, 114, 182, 0.1);
 }
 
 .nav-link.active {
-  color: var(--primary-light);
-  background: rgba(99, 102, 241, 0.15);
+  color: var(--primary-dark);
+  background: rgba(244, 114, 182, 0.12);
 }
 
 .nav-spacer {
@@ -210,7 +210,7 @@ onMounted(() => {
 
 .login-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 4px 12px rgba(244, 114, 182, 0.4);
 }
 
 .footer {

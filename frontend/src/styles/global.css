@@ -1,31 +1,32 @@
-/* ===== 全局样式 ===== */
+/* ===== 全局样式 - 浅粉可爱风 ===== */
 :root {
-  --primary: #6366f1;
-  --primary-light: #818cf8;
-  --primary-dark: #4f46e5;
-  --bg-dark: #0f172a;
-  --bg-card: #1e293b;
-  --bg-card-hover: #334155;
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --border-color: #334155;
-  --accent-red: #ef4444;
-  --accent-green: #22c55e;
-  --accent-yellow: #eab308;
-  --accent-blue: #3b82f6;
-  --accent-pink: #ec4899;
-  --accent-purple: #a855f7;
-  --gradient-primary: linear-gradient(135deg, #6366f1, #8b5cf6);
-  --gradient-warm: linear-gradient(135deg, #f97316, #ef4444);
-  --gradient-cool: linear-gradient(135deg, #06b6d4, #3b82f6);
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.5);
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
+  --primary: #f472b6;
+  --primary-light: #f9a8d4;
+  --primary-dark: #ec4899;
+  --bg-dark: #fff5f7;
+  --bg-card: #ffffff;
+  --bg-card-hover: #fff0f3;
+  --bg-primary: #fff5f7;
+  --text-primary: #4a2040;
+  --text-secondary: #7c5270;
+  --text-muted: #b8929e;
+  --border-color: #fce4ec;
+  --accent-red: #f43f5e;
+  --accent-green: #34d399;
+  --accent-yellow: #fbbf24;
+  --accent-blue: #60a5fa;
+  --accent-pink: #f472b6;
+  --accent-purple: #c084fc;
+  --gradient-primary: linear-gradient(135deg, #f472b6, #c084fc);
+  --gradient-warm: linear-gradient(135deg, #fb923c, #f472b6);
+  --gradient-cool: linear-gradient(135deg, #67e8f9, #a78bfa);
+  --shadow-sm: 0 1px 3px rgba(244, 114, 182, 0.1);
+  --shadow-md: 0 4px 12px rgba(244, 114, 182, 0.12);
+  --shadow-lg: 0 8px 30px rgba(244, 114, 182, 0.15);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
 }
 
 * {
@@ -66,14 +67,14 @@ img {
   background: var(--bg-dark);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--text-muted);
+  background: var(--primary-light);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
+  background: var(--primary);
 }
 
-/* ===== Element Plus 暗色覆盖 ===== */
+/* ===== Element Plus 浅色覆盖 ===== */
 .el-pagination {
   --el-pagination-bg-color: transparent;
   --el-pagination-text-color: var(--text-secondary);
@@ -85,20 +86,27 @@ img {
   border: none;
 }
 
+.el-input__wrapper {
+  background: var(--bg-card) !important;
+  box-shadow: 0 0 0 1px var(--border-color) !important;
+}
+
+.el-input__inner {
+  color: var(--text-primary) !important;
+}
+
+.el-textarea__inner {
+  background: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
 /* ===== 通用容器 ===== */
 .page-container {
   max-width: 1280px;
   margin: 0 auto;
   padding: 24px 20px;
 }
-
-/* ===== 地区标签颜色 ===== */
-.region-tag-CN { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
-.region-tag-KR { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
-.region-tag-JP { background: rgba(234, 179, 8, 0.15); color: #eab308; }
-.region-tag-US { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
-.region-tag-UK { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
-.region-tag-EU { background: rgba(6, 182, 212, 0.15); color: #06b6d4; }
 
 /* ===== 淡入动画 ===== */
 .fade-in {

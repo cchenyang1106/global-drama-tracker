@@ -96,7 +96,7 @@ onUnmounted(() => { if (pollTimer) clearInterval(pollTimer) })
 .msg-row { display: flex; }
 .msg-row.mine { justify-content: flex-end; }
 .msg-bubble { max-width: 70%; padding: 10px 14px; border-radius: 12px; background: var(--bg-card); }
-.msg-row.mine .msg-bubble { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
+.msg-row.mine .msg-bubble { background: linear-gradient(135deg, #f472b6, #c084fc); color: white; }
 .msg-content { font-size: 14px; line-height: 1.6; word-break: break-word; }
 .msg-time { font-size: 11px; opacity: 0.6; text-align: right; margin-top: 4px; }
 .empty-chat { text-align: center; color: var(--text-muted); padding: 40px; }
