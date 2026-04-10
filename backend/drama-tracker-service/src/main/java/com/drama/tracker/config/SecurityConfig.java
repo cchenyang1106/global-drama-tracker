@@ -29,13 +29,7 @@ public class SecurityConfig {
      * 白名单路径
      */
     private static final String[] WHITE_LIST = {
-            "/api/auth/**",
-            "/api/activity/**",
-            "/api/profile/user/**",
-            "/api/match/apply",
-            "/api/admin/login",
-            "/api/admin/verify",
-            "/api/analytics/**",
+            "/api/**",
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/v3/api-docs/**",
