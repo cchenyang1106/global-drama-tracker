@@ -43,7 +43,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive } from 'vue'
 import { getMyProfile, saveProfile, getUserProfile } from '@/api/profile'
 
 const viewUserId = ref(null)
@@ -61,10 +61,10 @@ async function save() {
   saving.value = false
 }
 
-onMounted(async () => {
-  const pages = getCurrentPages()
-  const page = pages[pages.length - 1]
-  viewUserId.value = page?.options?.userId || null
+import { onLoad } from '@dcloudio/uni-app'
+
+onLoad(async (options) => {
+  viewUserId.value = options?.userId || null
 
   if (viewUserId.value) {
     try { profile.value = await getUserProfile(viewUserId.value) } catch {}

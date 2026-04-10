@@ -18,7 +18,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onUnmounted } from 'vue'
 import { getChatMessages, sendMessage } from '@/api/match'
 
 const messages = ref([])
@@ -51,10 +51,10 @@ async function send() {
   } catch {}
 }
 
-onMounted(() => {
-  const pages = getCurrentPages()
-  const page = pages[pages.length - 1]
-  matchId = page?.options?.matchId
+import { onLoad } from '@dcloudio/uni-app'
+
+onLoad((options) => {
+  matchId = options?.matchId
   load()
   timer = setInterval(load, 5000)
 })

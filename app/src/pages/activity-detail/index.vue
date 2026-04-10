@@ -33,7 +33,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { getActivityDetail } from '@/api/activity'
 import { applyActivity, getSentRequests } from '@/api/match'
 
@@ -60,10 +60,10 @@ async function doApply() {
   applying.value = false
 }
 
-onMounted(async () => {
-  const pages = getCurrentPages()
-  const page = pages[pages.length - 1]
-  const id = page?.options?.id
+import { onLoad } from '@dcloudio/uni-app'
+
+onLoad(async (options) => {
+  const id = options?.id
   if (id) activity.value = await getActivityDetail(id)
   if (isLoggedIn.value) {
     try { const sent = await getSentRequests(); applied.value = (sent||[]).some(r => r.activityId == id) } catch {}
