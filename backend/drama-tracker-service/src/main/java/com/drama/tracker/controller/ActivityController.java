@@ -93,7 +93,7 @@ public class ActivityController {
     @GetMapping("/{id}")
     public Result<Map<String, Object>> getActivity(@PathVariable Long id) {
         Activity a = activityMapper.selectById(id);
-        if (a == null) return Result.error(404, "活动不存在");
+        if (a == null) return Result.fail(404, "活动不存在");
         // 浏览量+1
         a.setViewCount(a.getViewCount() + 1);
         activityMapper.updateById(a);
@@ -121,7 +121,7 @@ public class ActivityController {
     public Result<Long> publish(@RequestHeader(value = "Authorization", required = false) String auth,
                                 @RequestBody Map<String, Object> body) {
         Long userId = getUserIdFromToken(auth);
-        if (userId == null) return Result.error(401, "请先登录");
+        if (userId == null) return Result.fail(401, "请先登录");
 
         Activity a = new Activity();
         a.setUserId(userId);
@@ -148,7 +148,7 @@ public class ActivityController {
     public Result<List<Map<String, Object>>> myActivities(
             @RequestHeader(value = "Authorization", required = false) String auth) {
         Long userId = getUserIdFromToken(auth);
-        if (userId == null) return Result.error(401, "请先登录");
+        if (userId == null) return Result.fail(401, "请先登录");
 
         List<Activity> list = activityMapper.selectList(
                 new LambdaQueryWrapper<Activity>().eq(Activity::getUserId, userId).orderByDesc(Activity::getCreateTime));
@@ -165,10 +165,10 @@ public class ActivityController {
     public Result<String> closeActivity(@RequestHeader(value = "Authorization", required = false) String auth,
                                          @PathVariable Long id) {
         Long userId = getUserIdFromToken(auth);
-        if (userId == null) return Result.error(401, "请先登录");
+        if (userId == null) return Result.fail(401, "请先登录");
         Activity a = activityMapper.selectById(id);
-        if (a == null) return Result.error(404, "活动不存在");
-        if (!a.getUserId().equals(userId)) return Result.error(403, "无权操作");
+        if (a == null) return Result.fail(404, "活动不存在");
+        if (!a.getUserId().equals(userId)) return Result.fail(403, "无权操作");
         a.setStatus(0);
         activityMapper.updateById(a);
         return Result.success("已关闭");

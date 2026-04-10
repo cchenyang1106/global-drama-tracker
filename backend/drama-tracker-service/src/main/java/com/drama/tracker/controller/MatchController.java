@@ -45,19 +45,19 @@ public class MatchController {
     public Result<String> apply(@RequestHeader(value = "Authorization", required = false) String auth,
                                 @RequestBody Map<String, Object> body) {
         Long userId = getUserIdFromToken(auth);
-        if (userId == null) return Result.error(401, "请先登录");
+        if (userId == null) return Result.fail(401, "请先登录");
 
         Long activityId = Long.valueOf(body.get("activityId").toString());
         Activity activity = activityMapper.selectById(activityId);
-        if (activity == null) return Result.error(404, "活动不存在");
-        if (activity.getUserId().equals(userId)) return Result.error(400, "不能申请自己发布的活动");
-        if (activity.getStatus() != 1) return Result.error(400, "活动已关闭或已满员");
+        if (activity == null) return Result.fail(404, "活动不存在");
+        if (activity.getUserId().equals(userId)) return Result.fail(400, "不能申请自己发布的活动");
+        if (activity.getStatus() != 1) return Result.fail(400, "活动已关闭或已满员");
 
         // 检查是否已申请
         MatchRequest existing = matchMapper.selectOne(new LambdaQueryWrapper<MatchRequest>()
                 .eq(MatchRequest::getActivityId, activityId)
                 .eq(MatchRequest::getFromUserId, userId));
-        if (existing != null) return Result.error(400, "已申请过，请勿重复申请");
+        if (existing != null) return Result.fail(400, "已申请过，请勿重复申请");
 
         MatchRequest mr = new MatchRequest();
         mr.setActivityId(activityId);
@@ -77,7 +77,7 @@ public class MatchController {
     public Result<List<Map<String, Object>>> received(
             @RequestHeader(value = "Authorization", required = false) String auth) {
         Long userId = getUserIdFromToken(auth);
-        if (userId == null) return Result.error(401, "请先登录");
+        if (userId == null) return Result.fail(401, "请先登录");
 
         List<MatchRequest> list = matchMapper.selectList(new LambdaQueryWrapper<MatchRequest>()
                 .eq(MatchRequest::getToUserId, userId).orderByDesc(MatchRequest::getCreateTime));
@@ -101,7 +101,7 @@ public class MatchController {
     public Result<List<Map<String, Object>>> sent(
             @RequestHeader(value = "Authorization", required = false) String auth) {
         Long userId = getUserIdFromToken(auth);
-        if (userId == null) return Result.error(401, "请先登录");
+        if (userId == null) return Result.fail(401, "请先登录");
 
         List<MatchRequest> list = matchMapper.selectList(new LambdaQueryWrapper<MatchRequest>()
                 .eq(MatchRequest::getFromUserId, userId).orderByDesc(MatchRequest::getCreateTime));
@@ -126,12 +126,12 @@ public class MatchController {
                                   @PathVariable Long id,
                                   @RequestParam Integer action) {
         Long userId = getUserIdFromToken(auth);
-        if (userId == null) return Result.error(401, "请先登录");
+        if (userId == null) return Result.fail(401, "请先登录");
 
         MatchRequest mr = matchMapper.selectById(id);
-        if (mr == null) return Result.error(404, "申请不存在");
-        if (!mr.getToUserId().equals(userId)) return Result.error(403, "无权操作");
-        if (mr.getStatus() != 0) return Result.error(400, "申请已处理");
+        if (mr == null) return Result.fail(404, "申请不存在");
+        if (!mr.getToUserId().equals(userId)) return Result.fail(403, "无权操作");
+        if (mr.getStatus() != 0) return Result.fail(400, "申请已处理");
 
         mr.setStatus(action == 1 ? 1 : 2);
         matchMapper.updateById(mr);
@@ -165,7 +165,7 @@ public class MatchController {
     public Result<List<Map<String, Object>>> chatList(
             @RequestHeader(value = "Authorization", required = false) String auth) {
         Long userId = getUserIdFromToken(auth);
-        if (userId == null) return Result.error(401, "请先登录");
+        if (userId == null) return Result.fail(401, "请先登录");
 
         // 我发出的已同意 + 我收到的已同意
         List<MatchRequest> list = matchMapper.selectList(new LambdaQueryWrapper<MatchRequest>()
@@ -213,13 +213,13 @@ public class MatchController {
     public Result<Long> sendMessage(@RequestHeader(value = "Authorization", required = false) String auth,
                                     @RequestBody Map<String, Object> body) {
         Long userId = getUserIdFromToken(auth);
-        if (userId == null) return Result.error(401, "请先登录");
+        if (userId == null) return Result.fail(401, "请先登录");
 
         Long matchId = Long.valueOf(body.get("matchId").toString());
         MatchRequest mr = matchMapper.selectById(matchId);
-        if (mr == null || mr.getStatus() != 1) return Result.error(400, "匹配不存在或未成功");
+        if (mr == null || mr.getStatus() != 1) return Result.fail(400, "匹配不存在或未成功");
         if (!mr.getFromUserId().equals(userId) && !mr.getToUserId().equals(userId))
-            return Result.error(403, "无权操作");
+            return Result.fail(403, "无权操作");
 
         Long receiverId = mr.getFromUserId().equals(userId) ? mr.getToUserId() : mr.getFromUserId();
 
@@ -245,12 +245,12 @@ public class MatchController {
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "50") Integer size) {
         Long userId = getUserIdFromToken(auth);
-        if (userId == null) return Result.error(401, "请先登录");
+        if (userId == null) return Result.fail(401, "请先登录");
 
         MatchRequest mr = matchMapper.selectById(matchId);
-        if (mr == null) return Result.error(404, "匹配不存在");
+        if (mr == null) return Result.fail(404, "匹配不存在");
         if (!mr.getFromUserId().equals(userId) && !mr.getToUserId().equals(userId))
-            return Result.error(403, "无权查看");
+            return Result.fail(403, "无权查看");
 
         // 标记消息已读
         chatMapper.selectList(new LambdaQueryWrapper<ChatMessage>()

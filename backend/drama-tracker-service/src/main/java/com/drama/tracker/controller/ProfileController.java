@@ -44,7 +44,7 @@ public class ProfileController {
     @GetMapping("/me")
     public Result<Map<String, Object>> getMyProfile(@RequestHeader(value = "Authorization", required = false) String auth) {
         Long userId = getUserIdFromToken(auth);
-        if (userId == null) return Result.error(401, "请先登录");
+        if (userId == null) return Result.fail(401, "请先登录");
 
         UserProfile profile = profileMapper.selectOne(
                 new LambdaQueryWrapper<UserProfile>().eq(UserProfile::getUserId, userId));
@@ -78,7 +78,7 @@ public class ProfileController {
     public Result<String> saveProfile(@RequestHeader(value = "Authorization", required = false) String auth,
                                       @RequestBody Map<String, Object> body) {
         Long userId = getUserIdFromToken(auth);
-        if (userId == null) return Result.error(401, "请先登录");
+        if (userId == null) return Result.fail(401, "请先登录");
 
         UserProfile profile = profileMapper.selectOne(
                 new LambdaQueryWrapper<UserProfile>().eq(UserProfile::getUserId, userId));
@@ -125,7 +125,7 @@ public class ProfileController {
         UserProfile profile = profileMapper.selectOne(
                 new LambdaQueryWrapper<UserProfile>().eq(UserProfile::getUserId, userId));
         User user = userMapper.selectById(userId);
-        if (user == null) return Result.error(404, "用户不存在");
+        if (user == null) return Result.fail(404, "用户不存在");
 
         Map<String, Object> data = new HashMap<>();
         data.put("userId", userId);
