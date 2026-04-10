@@ -24,6 +24,12 @@
           <el-tag v-for="h in profile.hobbies.split(',')" :key="h" size="small" round>{{ h.trim() }}</el-tag>
         </div>
       </div>
+      <div v-if="photos.length > 0" class="photos-section">
+        <span class="info-label">📸 照片</span>
+        <div class="photos-grid">
+          <img v-for="(p, i) in photos" :key="i" :src="p" class="photo-img" @click="previewPhoto(p)" />
+        </div>
+      </div>
     </div>
   </div>
   <div v-else class="loading-page">加载中...</div>
@@ -36,9 +42,19 @@ import { getUserProfile } from '@/api/profile'
 
 const route = useRoute()
 const profile = ref(null)
+const photos = ref([])
+
+function previewPhoto(url) {
+  window.open(url, '_blank')
+}
 
 onMounted(async () => {
-  try { profile.value = await getUserProfile(route.params.userId) } catch { profile.value = {} }
+  try {
+    profile.value = await getUserProfile(route.params.userId)
+    if (profile.value?.photos) {
+      try { photos.value = JSON.parse(profile.value.photos) } catch { photos.value = [] }
+    }
+  } catch { profile.value = {} }
 })
 </script>
 
@@ -48,9 +64,13 @@ onMounted(async () => {
 .user-top { display: flex; gap: 16px; align-items: center; margin-bottom: 20px; }
 .user-top h2 { font-size: 20px; font-weight: 800; }
 .user-sub { display: flex; gap: 10px; font-size: 13px; color: var(--text-muted); margin-top: 4px; }
-.info-row { padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.05); font-size: 14px; color: var(--text-secondary); }
+.info-row { padding: 10px 0; border-top: 1px solid var(--border-color); font-size: 14px; color: var(--text-secondary); }
 .info-label { color: var(--text-muted); margin-right: 8px; }
-.hobbies { padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.05); }
+.hobbies { padding: 10px 0; border-top: 1px solid var(--border-color); }
 .hobby-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.photos-section { padding: 10px 0; border-top: 1px solid var(--border-color); }
+.photos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+.photo-img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; cursor: pointer; transition: transform 0.2s; }
+.photo-img:hover { transform: scale(1.03); }
 .loading-page { text-align: center; padding: 60px; color: var(--text-muted); }
 </style>
