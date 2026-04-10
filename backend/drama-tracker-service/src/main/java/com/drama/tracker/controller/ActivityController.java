@@ -76,8 +76,9 @@ public class ActivityController {
                     new LambdaQueryWrapper<UserProfile>().eq(UserProfile::getUserId, a.getUserId()));
             if (user != null) item.put("authorName", user.getNickname());
             if (profile != null) {
-                item.put("authorAvatar", profile.getAvatarUrl());
+                // 列表不返回 base64 头像（太大），只返回城市
                 item.put("authorCity", profile.getCity());
+                item.put("authorGender", profile.getGender());
             }
             records.add(item);
         }
