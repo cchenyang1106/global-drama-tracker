@@ -109,7 +109,6 @@ public class ActivityController {
                 new LambdaQueryWrapper<UserProfile>().eq(UserProfile::getUserId, a.getUserId()));
         if (user != null) data.put("authorName", user.getNickname());
         if (profile != null) {
-            data.put("authorAvatar", profile.getAvatarUrl());
             data.put("authorCity", profile.getCity());
             data.put("authorAge", profile.getAge());
             data.put("authorGender", profile.getGender());

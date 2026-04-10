@@ -5,7 +5,8 @@
       <p>发布你的活动需求，匹配志同道合的伙伴</p>
       <div class="hero-actions">
         <el-input v-model="keyword" placeholder="搜索活动..." :prefix-icon="Search" clearable
-          @keyup.enter="loadActivities" class="search-box" />
+          @keyup.enter="loadActivities()" @clear="loadActivities()" class="search-box" />
+        <el-button type="primary" @click="loadActivities()" round>搜索</el-button>
         <router-link to="/publish" class="publish-btn" v-if="userStore.isLoggedIn">发布活动</router-link>
         <router-link to="/login" class="publish-btn" v-else>登录后发布</router-link>
       </div>
