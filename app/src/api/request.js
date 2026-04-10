@@ -1,4 +1,4 @@
-import { BASE_URL } from '@/utils/config'
+const BASE_URL = 'https://global-drama-tracker-production.up.railway.app'
 
 function request(options) {
   return new Promise((resolve, reject) => {
@@ -10,7 +10,6 @@ function request(options) {
       header: {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...(options.header || {}),
       },
       success(res) {
         if (res.data && res.data.code === 200) {
@@ -22,6 +21,7 @@ function request(options) {
         }
       },
       fail(err) {
+        console.error('请求失败:', options.url, err)
         uni.showToast({ title: '网络错误', icon: 'none' })
         reject(err)
       },

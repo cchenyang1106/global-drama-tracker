@@ -42,14 +42,13 @@
         <text class="section-title">🔥 热门剧集</text>
       </view>
       <view class="hot-list">
-        <view class="hot-item" v-for="(d, i) in hotList" :key="d.id" @tap="goDetail(d.id)">
+        <view class="hot-item" v-for="(d, i) in hotList" :key="d.dramaId || d.id" @tap="goDetail(d.dramaId || d.id)">
           <text class="hot-rank" :class="{ top3: i < 3 }">{{ i + 1 }}</text>
-          <image class="hot-poster" :src="d.posterUrl || defaultPoster" mode="aspectFill" />
           <view class="hot-info">
-            <text class="hot-title">{{ d.title }}</text>
-            <text class="hot-sub">{{ getRegionLabel(d.region) }} · {{ d.genres || '' }}</text>
+            <text class="hot-title">{{ d.dramaTitle || d.title }}</text>
+            <text class="hot-sub">🔥 {{ formatHot(d.hotScore) }}</text>
           </view>
-          <text class="hot-score" v-if="d.userRating">{{ Number(d.userRating).toFixed(1) }}</text>
+          <text class="hot-score" v-if="d.score">{{ Number(d.score).toFixed(1) }}</text>
         </view>
       </view>
     </view>
@@ -84,6 +83,12 @@ function goRegion(code) {
 
 function goTab(idx) {
   uni.switchTab({ url: '/pages/dramas/index' })
+}
+
+function formatHot(val) {
+  if (!val) return '0'
+  if (val >= 10000) return (val / 10000).toFixed(1) + '万'
+  return val
 }
 
 function onSearch() {

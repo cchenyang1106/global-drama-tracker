@@ -10,16 +10,14 @@
 
     <!-- 排行列表 -->
     <view class="rank-list">
-      <view class="rank-item" v-for="(d, i) in list" :key="d.dramaId || d.id" @tap="goDetail(d.dramaId || d.id)">
-        <text class="rank-num" :class="{ gold: i === 0, silver: i === 1, bronze: i === 2 }">{{ i + 1 }}</text>
-        <image class="rank-poster" :src="d.posterUrl || defaultPoster" mode="aspectFill" />
+      <view class="rank-item" v-for="(d, i) in list" :key="d.id" @tap="goDetail(d.dramaId)">
+        <text class="rank-num" :class="{ gold: i === 0, silver: i === 1, bronze: i === 2 }">{{ d.rank || i + 1 }}</text>
         <view class="rank-info">
-          <text class="rank-title">{{ d.title || d.dramaTitle }}</text>
-          <text class="rank-sub">{{ d.genres || '' }}</text>
+          <text class="rank-title">{{ d.dramaTitle || d.title }}</text>
+          <text class="rank-sub">🔥 {{ formatHot(d.hotScore) }}</text>
         </view>
         <view class="rank-right">
-          <text class="rank-score" v-if="d.score || d.userRating">{{ Number(d.score || d.userRating).toFixed(1) }}</text>
-          <text class="rank-hot" v-if="d.hotScore">🔥 {{ formatHot(d.hotScore) }}</text>
+          <text class="rank-score" v-if="d.score">{{ Number(d.score).toFixed(1) }}</text>
         </view>
       </view>
     </view>
@@ -34,7 +32,6 @@
 import { ref, onMounted } from 'vue'
 import { getDailyRanking, getWeeklyRanking, getMonthlyRanking, getNewRanking } from '@/api/ranking'
 
-const defaultPoster = 'https://via.placeholder.com/300x420/1e293b/475569?text=No+Poster'
 const currentTab = ref('daily')
 const list = ref([])
 
@@ -51,7 +48,8 @@ async function loadData() {
   try {
     const fn = apiMap[currentTab.value]
     const data = await fn({ page: 1, size: 50 })
-    list.value = data?.list || data?.records || data || []
+    // API 可能返回数组或分页对象
+    list.value = Array.isArray(data) ? data : (data?.list || data?.records || [])
   } catch { list.value = [] }
 }
 

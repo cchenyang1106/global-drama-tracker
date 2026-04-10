@@ -23,10 +23,10 @@
     "backgroundColor": "#0f172a",
     "borderStyle": "black",
     "list": [
-      { "pagePath": "pages/index/index", "text": "首页", "iconPath": "static/tab-home.png", "selectedIconPath": "static/tab-home-active.png" },
-      { "pagePath": "pages/dramas/index", "text": "剧集库", "iconPath": "static/tab-film.png", "selectedIconPath": "static/tab-film-active.png" },
-      { "pagePath": "pages/ranking/index", "text": "排行榜", "iconPath": "static/tab-rank.png", "selectedIconPath": "static/tab-rank-active.png" },
-      { "pagePath": "pages/mine/index", "text": "我的", "iconPath": "static/tab-user.png", "selectedIconPath": "static/tab-user-active.png" }
+      { "pagePath": "pages/index/index", "text": "首页" },
+      { "pagePath": "pages/dramas/index", "text": "剧集库" },
+      { "pagePath": "pages/ranking/index", "text": "排行榜" },
+      { "pagePath": "pages/mine/index", "text": "我的" }
     ]
   }
 }
