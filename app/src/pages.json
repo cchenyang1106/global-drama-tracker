@@ -10,17 +10,17 @@
     { "path": "pages/login/index", "style": { "navigationBarTitleText": "登录" } }
   ],
   "globalStyle": {
-    "navigationBarTextStyle": "white",
+    "navigationBarTextStyle": "black",
     "navigationBarTitleText": "找搭子",
-    "navigationBarBackgroundColor": "#0f172a",
-    "backgroundColor": "#0f172a",
-    "backgroundTextStyle": "light"
+    "navigationBarBackgroundColor": "#fff5f7",
+    "backgroundColor": "#fff5f7",
+    "backgroundTextStyle": "dark"
   },
   "tabBar": {
-    "color": "#94a3b8",
-    "selectedColor": "#6366f1",
-    "backgroundColor": "#0f172a",
-    "borderStyle": "black",
+    "color": "#b8929e",
+    "selectedColor": "#ec4899",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
     "list": [
       { "pagePath": "pages/index/index", "text": "广场" },
       { "pagePath": "pages/messages/index", "text": "消息" },

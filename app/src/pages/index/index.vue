@@ -82,26 +82,26 @@ onMounted(loadData)
 </script>
 
 <style>
-.page { padding: 16rpx; background: #0f172a; min-height: 100vh; }
+.page { padding: 16rpx; background: #fff5f7; min-height: 100vh; }
 .hero { text-align: center; padding: 40rpx 0 20rpx; }
-.hero-title { font-size: 44rpx; font-weight: 800; color: #818cf8; }
+.hero-title { font-size: 44rpx; font-weight: 800; color: #f472b6; }
 .search-bar { margin-top: 20rpx; padding: 0 40rpx; }
-.search-input { background: #1e293b; border-radius: 16rpx; padding: 16rpx 24rpx; color: #e2e8f0; font-size: 28rpx; }
+.search-input { background: #ffffff; border-radius: 16rpx; padding: 16rpx 24rpx; color: #4a2040; font-size: 28rpx; }
 
 .cats { white-space: nowrap; padding: 16rpx 0; }
-.cat-item { display: inline-block; padding: 12rpx 24rpx; margin-right: 12rpx; border-radius: 32rpx; background: #1e293b; color: #94a3b8; font-size: 26rpx; }
-.cat-item.active { background: rgba(99,102,241,0.2); color: #818cf8; }
+.cat-item { display: inline-block; padding: 12rpx 24rpx; margin-right: 12rpx; border-radius: 32rpx; background: #ffffff; color: #7c5270; font-size: 26rpx; }
+.cat-item.active { background: rgba(99,102,241,0.2); color: #f472b6; }
 
-.card { background: #1e293b; border-radius: 20rpx; padding: 28rpx; margin-bottom: 20rpx; }
+.card { background: #ffffff; border-radius: 20rpx; padding: 28rpx; margin-bottom: 20rpx; }
 .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; }
 .author { display: flex; align-items: center; gap: 16rpx; }
-.avatar { width: 64rpx; height: 64rpx; border-radius: 50%; background: #6366f1; color: white; display: flex; align-items: center; justify-content: center; font-size: 28rpx; font-weight: 700; }
-.name { font-size: 28rpx; font-weight: 600; color: #e2e8f0; display: block; }
-.sub { font-size: 22rpx; color: #64748b; }
-.cat-badge { background: rgba(99,102,241,0.15); color: #818cf8; padding: 6rpx 16rpx; border-radius: 16rpx; font-size: 24rpx; }
-.card-title { font-size: 32rpx; font-weight: 700; color: #f1f5f9; margin-bottom: 8rpx; display: block; }
-.card-desc { font-size: 26rpx; color: #94a3b8; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.card-meta { display: flex; gap: 16rpx; margin-top: 12rpx; font-size: 24rpx; color: #64748b; flex-wrap: wrap; }
-.empty { text-align: center; padding: 80rpx; color: #64748b; font-size: 28rpx; }
-.fab { position: fixed; right: 32rpx; bottom: 180rpx; width: 96rpx; height: 96rpx; border-radius: 50%; background: linear-gradient(135deg,#6366f1,#8b5cf6); display: flex; align-items: center; justify-content: center; font-size: 40rpx; box-shadow: 0 8rpx 24rpx rgba(99,102,241,0.4); }
+.avatar { width: 64rpx; height: 64rpx; border-radius: 50%; background: #f472b6; color: white; display: flex; align-items: center; justify-content: center; font-size: 28rpx; font-weight: 700; }
+.name { font-size: 28rpx; font-weight: 600; color: #4a2040; display: block; }
+.sub { font-size: 22rpx; color: #b8929e; }
+.cat-badge { background: rgba(99,102,241,0.15); color: #f472b6; padding: 6rpx 16rpx; border-radius: 16rpx; font-size: 24rpx; }
+.card-title { font-size: 32rpx; font-weight: 700; color: #4a2040; margin-bottom: 8rpx; display: block; }
+.card-desc { font-size: 26rpx; color: #7c5270; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.card-meta { display: flex; gap: 16rpx; margin-top: 12rpx; font-size: 24rpx; color: #b8929e; flex-wrap: wrap; }
+.empty { text-align: center; padding: 80rpx; color: #b8929e; font-size: 28rpx; }
+.fab { position: fixed; right: 32rpx; bottom: 180rpx; width: 96rpx; height: 96rpx; border-radius: 50%; background: linear-gradient(135deg,#f472b6,#c084fc); display: flex; align-items: center; justify-content: center; font-size: 40rpx; box-shadow: 0 8rpx 24rpx rgba(99,102,241,0.4); }
 </style>

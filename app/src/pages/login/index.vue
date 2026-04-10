@@ -1,8 +1,8 @@
 <template>
   <view class="page-bg login-page">
     <view class="login-card">
-      <text class="login-title">{{ isRegister ? '📝 注册账号' : '🎬 登录' }}</text>
-      <text class="login-sub">Global Drama Tracker</text>
+      <text class="login-title">{{ isRegister ? '📝 注册账号' : '🎯 登录' }}</text>
+      <text class="login-sub">找搭子 · 找到志同道合的伙伴</text>
 
       <view class="form-group">
         <input class="form-input" v-model="form.phone" placeholder="手机号" type="number" maxlength="11" />
@@ -63,20 +63,20 @@ async function handleSubmit() {
 
 <style lang="scss">
 .login-page { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 40rpx; }
-.login-card { width: 100%; max-width: 600rpx; background: #1e293b; border-radius: 24rpx; padding: 60rpx 40rpx; text-align: center; }
-.login-title { font-size: 40rpx; font-weight: 800; color: #f1f5f9; display: block; margin-bottom: 8rpx; }
-.login-sub { font-size: 24rpx; color: #64748b; display: block; margin-bottom: 48rpx; }
+.login-card { width: 100%; max-width: 600rpx; background: #ffffff; border-radius: 24rpx; padding: 60rpx 40rpx; text-align: center; }
+.login-title { font-size: 40rpx; font-weight: 800; color: #4a2040; display: block; margin-bottom: 8rpx; }
+.login-sub { font-size: 24rpx; color: #b8929e; display: block; margin-bottom: 48rpx; }
 
 .form-group { margin-bottom: 24rpx; }
-.form-input { background: #0f172a; border-radius: 16rpx; padding: 24rpx; color: #f1f5f9; font-size: 28rpx; width: 100%; box-sizing: border-box; }
+.form-input { background: #fff5f7; border-radius: 16rpx; padding: 24rpx; color: #4a2040; font-size: 28rpx; width: 100%; box-sizing: border-box; }
 
 .submit-btn {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, #f472b6, #c084fc);
   border-radius: 40rpx; padding: 24rpx; text-align: center;
   color: white; font-size: 30rpx; font-weight: 700; margin-top: 16rpx;
 }
 
 .switch-row { display: flex; justify-content: center; gap: 8rpx; margin-top: 28rpx; }
-.switch-text { font-size: 24rpx; color: #64748b; }
-.switch-link { font-size: 24rpx; color: #6366f1; }
+.switch-text { font-size: 24rpx; color: #b8929e; }
+.switch-link { font-size: 24rpx; color: #f472b6; }
 </style>
