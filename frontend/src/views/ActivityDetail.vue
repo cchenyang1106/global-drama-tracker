@@ -58,6 +58,55 @@
     <div v-else-if="applied" class="apply-section owner-tip">
       ✅ 已申请，等待对方确认
     </div>
+
+    <!-- 评论区 -->
+    <div class="comment-section">
+      <h3 class="section-title">💬 评论区 <span class="comment-count">({{ commentTotal }})</span></h3>
+
+      <!-- 发评论 -->
+      <div v-if="userStore.isLoggedIn" class="comment-form">
+        <el-input v-model="commentText" type="textarea" :rows="2"
+          :placeholder="replyTo ? `回复 ${replyTo.authorName}...` : '说点什么...'" maxlength="300" show-word-limit />
+        <div class="form-bar">
+          <span v-if="replyTo" class="reply-hint">
+            回复 {{ replyTo.authorName }} <span class="cancel-reply" @click="replyTo = null">✕取消</span>
+          </span>
+          <span v-else></span>
+          <el-button type="primary" size="small" :loading="submitting" @click="submitComment"
+            :disabled="!commentText.trim()" round>发表</el-button>
+        </div>
+      </div>
+      <div v-else class="login-comment-tip">
+        <router-link :to="`/login?redirect=/activity/${activity.id}`">登录后参与评论</router-link>
+      </div>
+
+      <!-- 评论列表 -->
+      <div v-if="comments.length === 0" class="no-comments">暂无评论，来说两句吧~</div>
+      <div v-for="c in comments" :key="c.id" :class="['comment-item', { pinned: c.pinned }]">
+        <div class="comment-header">
+          <el-avatar :size="32" :src="c.authorAvatar" style="background:#f472b6">
+            {{ (c.authorName || '?').charAt(0) }}
+          </el-avatar>
+          <span class="comment-author" @click="$router.push(`/user/${c.userId}`)">{{ c.authorName }}</span>
+          <el-tag v-if="c.pinned" size="small" type="warning" round>置顶</el-tag>
+          <span v-if="c.replyToName" class="reply-tag">回复 {{ c.replyToName }}</span>
+          <span class="comment-time">{{ formatTime(c.createTime) }}</span>
+        </div>
+        <p class="comment-content">{{ c.content }}</p>
+        <div class="comment-actions">
+          <el-button text size="small" @click="setReply(c)">回复</el-button>
+          <template v-if="isOwner">
+            <el-button text size="small" @click="togglePin(c)">{{ c.pinned ? '取消置顶' : '置顶' }}</el-button>
+            <el-button text size="small" type="danger" @click="doHide(c.id)">隐藏</el-button>
+          </template>
+          <el-button v-if="c.userId === userStore.userId" text size="small" type="danger" @click="doDelete(c.id)">删除</el-button>
+        </div>
+      </div>
+
+      <div v-if="hasMoreComments" class="load-more">
+        <el-button text @click="loadMoreComments">加载更多...</el-button>
+      </div>
+    </div>
   </div>
   <div v-else class="loading-page">加载中...</div>
 </template>
@@ -68,6 +117,7 @@ import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getActivityDetail } from '@/api/activity'
 import { applyActivity, getSentRequests } from '@/api/match'
+import { getComments, addComment, pinComment, hideComment, deleteComment } from '@/api/activityComment'
 import { useUserStore } from '@/stores/user'
 
 const route = useRoute()
@@ -77,6 +127,15 @@ const applyMsg = ref('')
 const applying = ref(false)
 const applied = ref(false)
 
+// 评论
+const comments = ref([])
+const commentText = ref('')
+const commentTotal = ref(0)
+const commentPage = ref(1)
+const hasMoreComments = ref(false)
+const submitting = ref(false)
+const replyTo = ref(null)
+
 const isOwner = computed(() => activity.value && userStore.userId && activity.value.userId === userStore.userId)
 const canApply = computed(() => {
   return userStore.isLoggedIn && !isOwner.value && !applied.value && activity.value?.status === 1
@@ -85,6 +144,14 @@ const canApply = computed(() => {
 function catColor(cat) {
   const map = { '旅游': 'success', '运动': 'warning', '美食': 'danger', '电影': '', '学习': 'info' }
   return map[cat] || 'info'
+}
+
+function formatTime(t) {
+  if (!t) return ''
+  const d = new Date(t)
+  const now = new Date()
+  if (d.toDateString() === now.toDateString()) return d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+  return d.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }) + ' ' + d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
 }
 
 async function doApply() {
@@ -97,8 +164,60 @@ async function doApply() {
   applying.value = false
 }
 
+async function loadComments(append = false) {
+  if (!append) commentPage.value = 1
+  try {
+    const data = await getComments(route.params.id, commentPage.value, 20)
+    const records = data?.records || []
+    if (append) comments.value.push(...records)
+    else comments.value = records
+    commentTotal.value = data?.total || 0
+    hasMoreComments.value = comments.value.length < commentTotal.value
+  } catch { /* ignore */ }
+}
+
+function loadMoreComments() { commentPage.value++; loadComments(true) }
+
+function setReply(c) { replyTo.value = c; commentText.value = '' }
+
+async function submitComment() {
+  if (!commentText.value.trim()) return
+  submitting.value = true
+  try {
+    await addComment({
+      activityId: Number(route.params.id),
+      content: commentText.value,
+      parentId: replyTo.value?.id || null,
+    })
+    ElMessage.success('评论成功')
+    commentText.value = ''
+    replyTo.value = null
+    loadComments()
+  } catch (e) { ElMessage.error(e?.message || '评论失败') }
+  submitting.value = false
+}
+
+async function togglePin(c) {
+  try {
+    await pinComment(c.id, c.pinned ? 0 : 1)
+    ElMessage.success(c.pinned ? '已取消置顶' : '已置顶')
+    loadComments()
+  } catch (e) { ElMessage.error(e?.message || '操作失败') }
+}
+
+async function doHide(id) {
+  try { await hideComment(id); ElMessage.success('已隐藏'); loadComments() }
+  catch (e) { ElMessage.error(e?.message || '操作失败') }
+}
+
+async function doDelete(id) {
+  try { await deleteComment(id); ElMessage.success('已删除'); loadComments() }
+  catch (e) { ElMessage.error(e?.message || '操作失败') }
+}
+
 onMounted(async () => {
   activity.value = await getActivityDetail(route.params.id)
+  loadComments()
   if (userStore.isLoggedIn) {
     try {
       const sent = await getSentRequests()
@@ -128,4 +247,30 @@ onMounted(async () => {
 .login-tip { display: block; text-align: center; padding: 12px; background: linear-gradient(135deg,#f472b6,#c084fc); color: white; border-radius: 8px; font-weight: 600; }
 .owner-tip { text-align: center; color: var(--text-muted); }
 .loading-page { text-align: center; padding: 60px; color: var(--text-muted); }
+
+/* 评论区 */
+.comment-section { background: var(--bg-card); border-radius: 16px; padding: 20px; margin-top: 16px; border: 1px solid var(--border-color); }
+.section-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+.comment-count { font-weight: 400; color: var(--text-muted); font-size: 14px; }
+
+.comment-form { margin-bottom: 16px; }
+.form-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+.reply-hint { font-size: 13px; color: var(--primary); }
+.cancel-reply { cursor: pointer; margin-left: 6px; color: var(--text-muted); }
+.cancel-reply:hover { color: var(--accent-red); }
+.login-comment-tip { text-align: center; padding: 12px; margin-bottom: 16px; }
+.login-comment-tip a { color: var(--primary); font-weight: 600; }
+
+.no-comments { text-align: center; padding: 30px; color: var(--text-muted); font-size: 14px; }
+
+.comment-item { padding: 14px 0; border-top: 1px solid var(--border-color); }
+.comment-item.pinned { background: rgba(244,114,182,0.04); margin: 0 -20px; padding: 14px 20px; border-radius: 8px; }
+.comment-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+.comment-author { font-weight: 600; font-size: 14px; cursor: pointer; color: var(--primary-dark); }
+.comment-author:hover { text-decoration: underline; }
+.reply-tag { font-size: 12px; color: var(--text-muted); }
+.comment-time { font-size: 12px; color: var(--text-muted); margin-left: auto; }
+.comment-content { font-size: 14px; line-height: 1.6; color: var(--text-secondary); margin-bottom: 4px; }
+.comment-actions { display: flex; gap: 4px; }
+.load-more { text-align: center; padding: 8px; }
 </style>
