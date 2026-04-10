@@ -2,7 +2,7 @@
   <div class="login-page">
     <div class="login-card">
       <h1>🔐 管理端登录</h1>
-      <p class="subtitle">Global Drama Tracker 管理中心</p>
+      <p class="subtitle">找搭子 管理中心</p>
       <el-form @submit.prevent="handleLogin" class="login-form">
         <el-form-item>
           <el-input v-model="form.username" placeholder="管理员账号" prefix-icon="User" size="large" />
@@ -23,7 +23,7 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { adminLogin } from '@/api/comment'
+import { adminLogin } from '@/api/auth'
 
 const router = useRouter()
 const loading = ref(false)

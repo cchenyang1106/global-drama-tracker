@@ -9,9 +9,21 @@ export function login(phone, password) {
 }
 
 export function getMe() {
-  const token = localStorage.getItem('user_token')
+  const token = localStorage.getItem('token')
   if (!token) return Promise.reject('no token')
   return request.get('/auth/me', {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+}
+
+export function adminLogin(username, password) {
+  return request.post('/admin/login', { username, password })
+}
+
+export function verifyAdmin() {
+  const token = localStorage.getItem('admin_token')
+  if (!token) return Promise.reject('no token')
+  return request.get('/admin/verify', {
     headers: { Authorization: `Bearer ${token}` },
   })
 }
