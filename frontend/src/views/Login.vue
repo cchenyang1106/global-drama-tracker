@@ -1,8 +1,8 @@
 <template>
   <div class="login-page">
     <div class="login-card">
-      <h1>{{ isRegister ? '📝 注册账号' : '🎬 登录' }}</h1>
-      <p class="subtitle">Global Drama Tracker · 全球剧集追踪平台</p>
+      <h1>{{ isRegister ? '📝 注册账号' : '🎯 登录' }}</h1>
+      <p class="subtitle">找搭子 · 找到志同道合的伙伴</p>
 
       <el-form class="login-form" @submit.prevent="handleSubmit">
         <el-form-item>
