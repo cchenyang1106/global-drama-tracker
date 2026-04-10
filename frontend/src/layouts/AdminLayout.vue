@@ -18,6 +18,10 @@
           <span class="link-icon">💬</span>
           <span>评论管理</span>
         </router-link>
+        <router-link to="/admin/analytics" class="sidebar-link" active-class="active">
+          <span class="link-icon">📈</span>
+          <span>数据统计</span>
+        </router-link>
       </nav>
 
       <div class="sidebar-footer">

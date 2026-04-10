@@ -59,6 +59,12 @@ const routes = [
         component: () => import('@/views/AdminComments.vue'),
         meta: { title: '评论管理', layout: 'admin', requiresAuth: true },
       },
+      {
+        path: 'analytics',
+        name: 'AdminAnalytics',
+        component: () => import('@/views/AdminAnalytics.vue'),
+        meta: { title: '数据统计', layout: 'admin', requiresAuth: true },
+      },
     ],
   },
 ]
