@@ -122,9 +122,9 @@
         </div>
 
         <!-- 发表评论表单 -->
-        <div class="comment-form">
+        <div v-if="userStore.isLoggedIn" class="comment-form">
           <div class="form-row">
-            <el-input v-model="commentForm.nickname" placeholder="你的昵称" size="default" style="width: 200px" />
+            <span class="logged-user">以 <strong>{{ userStore.nickname }}</strong> 身份评论</span>
             <div class="rating-input">
               <span class="rating-label">我的评分：</span>
               <el-rate v-model="commentForm.rating" :max="10" :colors="['#ff9900', '#ff9900', '#ff0000']" allow-half show-score />
@@ -147,6 +147,12 @@
         </div>
 
         <!-- 评论列表 -->
+        <div v-if="!userStore.isLoggedIn" class="login-prompt">
+          <router-link :to="`/login?redirect=/drama/${route.params.id}`" class="login-prompt-btn">
+            登录后参与评论讨论
+          </router-link>
+        </div>
+
         <div class="comment-list">
           <div v-if="comments.length === 0" class="no-comments">
             暂无评论，来发表第一条评论吧！
@@ -198,8 +204,10 @@ import { ElMessage } from 'element-plus'
 import { getDramaDetail } from '@/api/drama'
 import { getComments, addComment, likeComment, getFeaturedComments } from '@/api/comment'
 import { DEFAULT_POSTER, getRegionInfo, getTypeName, getStatusInfo } from '@/utils/constants'
+import { useUserStore } from '@/stores/user'
 
 const route = useRoute()
+const userStore = useUserStore()
 const drama = ref(null)
 const loading = ref(true)
 
@@ -210,7 +218,6 @@ const commentPage = ref(1)
 const hasMore = ref(false)
 const submitting = ref(false)
 const commentForm = reactive({
-  nickname: '',
   content: '',
   rating: 0,
   spoiler: false,
@@ -258,7 +265,7 @@ async function submitComment() {
   try {
     await addComment({
       dramaId: Number(route.params.id),
-      nickname: commentForm.nickname || '匿名用户',
+      nickname: userStore.nickname || '匿名用户',
       content: commentForm.content,
       rating: commentForm.rating > 0 ? commentForm.rating : null,
       spoiler: commentForm.spoiler,
@@ -557,6 +564,33 @@ async function loadFeatured() {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.logged-user {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.login-prompt {
+  text-align: center;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.login-prompt-btn {
+  display: inline-block;
+  padding: 10px 28px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.login-prompt-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
 }
 
 .comment-list {

@@ -37,6 +37,25 @@
             class="search-input"
           />
         </div>
+
+        <div class="nav-user">
+          <template v-if="userStore.isLoggedIn">
+            <el-dropdown trigger="click">
+              <span class="user-info">
+                <el-avatar :size="28" style="background:#6366f1">{{ userStore.nickname?.charAt(0) }}</el-avatar>
+                <span class="user-name">{{ userStore.nickname }}</span>
+              </span>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item @click="handleLogout">退出登录</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </template>
+          <template v-else>
+            <router-link to="/login" class="login-btn">登录</router-link>
+          </template>
+        </div>
       </div>
     </header>
 
@@ -57,15 +76,16 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { Search } from '@element-plus/icons-vue'
+import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
 const route = useRoute()
+const userStore = useUserStore()
 const searchKeyword = ref('')
 
-// 判断当前路由是否为管理端布局
 const isAdminLayout = computed(() => {
   return route.matched.some(record => record.meta.layout === 'admin')
 })
@@ -75,6 +95,15 @@ function handleSearch() {
     router.push({ path: '/search', query: { q: searchKeyword.value.trim() } })
   }
 }
+
+function handleLogout() {
+  userStore.logout()
+  router.push('/')
+}
+
+onMounted(() => {
+  userStore.init()
+})
 </script>
 
 <style scoped>
@@ -175,6 +204,50 @@ function handleSearch() {
 .main-content {
   min-height: calc(100vh - 64px - 60px);
   padding-top: 64px;
+}
+
+.nav-user {
+  display: flex;
+  align-items: center;
+  margin-left: 16px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: color 0.2s;
+}
+
+.user-info:hover {
+  color: var(--text-primary);
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 500;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.login-btn {
+  padding: 6px 16px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.login-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
 }
 
 .footer {

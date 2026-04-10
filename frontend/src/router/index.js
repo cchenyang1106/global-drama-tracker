@@ -32,6 +32,12 @@ const routes = [
     component: () => import('@/views/SearchResult.vue'),
     meta: { title: '搜索结果' },
   },
+  {
+    path: '/login',
+    name: 'Login',
+    component: () => import('@/views/Login.vue'),
+    meta: { title: '登录' },
+  },
 
   // ========== 管理端登录页（独立布局） ==========
   {
