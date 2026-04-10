@@ -70,5 +70,5 @@ tmdb:
   base-url: https://api.themoviedb.org/3
   image-base-url: https://image.tmdb.org/t/p
   language: zh-CN
-  auto-fetch-enabled: false
-  fetch-pages: 3
+  auto-fetch-enabled: ${TMDB_AUTO_FETCH:false}
+  fetch-pages: ${TMDB_FETCH_PAGES:1}

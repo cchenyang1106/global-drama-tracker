@@ -8,9 +8,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * 数据管理控制器。
@@ -18,6 +21,7 @@ import java.util.Map;
  *
  * @author drama-tracker
  */
+@Slf4j
 @Tag(name = "数据管理", description = "数据抓取、初始化、排行榜管理接口")
 @RestController
 @RequestMapping("/api/data")
@@ -29,28 +33,54 @@ public class DataController {
     private final RankingService rankingService;
 
     /**
-     * 从 TMDB 抓取全量数据。
+     * 从 TMDB 抓取全量数据（异步执行）。
      *
-     * @return 抓取结果统计
+     * @return 提交结果
      */
     @Operation(summary = "从 TMDB 抓取全量数据")
     @PostMapping("/fetch/tmdb")
     public Result<Map<String, Object>> fetchFromTmdb() {
-        Map<String, Object> result = tmdbService.fetchAllData();
+        CompletableFuture.runAsync(() -> {
+            try {
+                Map<String, Object> result = tmdbService.fetchAllData();
+                log.info("TMDB全量抓取完成: {}", result);
+                // 抓取完后自动刷新排行榜
+                rankingService.refreshRankings();
+                log.info("排行榜已自动刷新");
+            } catch (Exception e) {
+                log.error("TMDB全量抓取失败", e);
+            }
+        });
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("status", "submitted");
+        result.put("message", "全量抓取任务已提交，后台执行中，请稍后刷新页面查看数据");
         return Result.success(result);
     }
 
     /**
-     * 从 TMDB 按地区抓取数据。
+     * 从 TMDB 按地区抓取数据（异步执行）。
      *
      * @param region 地区代码 (CN/JP/KR/US/UK/EU)
-     * @return 抓取结果统计
+     * @return 提交结果
      */
     @Operation(summary = "按地区抓取 TMDB 数据")
     @PostMapping("/fetch/tmdb/{region}")
     public Result<Map<String, Object>> fetchByRegion(
             @Parameter(description = "地区代码") @PathVariable String region) {
-        Map<String, Object> result = tmdbService.fetchByRegion(region.toUpperCase());
+        String upperRegion = region.toUpperCase();
+        CompletableFuture.runAsync(() -> {
+            try {
+                Map<String, Object> result = tmdbService.fetchByRegion(upperRegion);
+                log.info("TMDB地区[{}]抓取完成: {}", upperRegion, result);
+                rankingService.refreshRankings();
+            } catch (Exception e) {
+                log.error("TMDB地区[{}]抓取失败", upperRegion, e);
+            }
+        });
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("status", "submitted");
+        result.put("region", upperRegion);
+        result.put("message", "地区[" + upperRegion + "]抓取任务已提交，后台执行中，请稍后刷新页面查看数据");
         return Result.success(result);
     }
 
