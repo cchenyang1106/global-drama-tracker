@@ -32,6 +32,7 @@ public class SecurityConfig {
             "/api/auth/**",
             "/api/drama/**",
             "/api/ranking/**",
+            "/api/data/**",
             "/api/comment/list/**",
             "/api/discussion/list/**",
             "/swagger-ui/**",
@@ -39,7 +40,8 @@ public class SecurityConfig {
             "/v3/api-docs/**",
             "/doc.html",
             "/webjars/**",
-            "/actuator/**"
+            "/actuator/**",
+            "/error"
     };
 
     /**

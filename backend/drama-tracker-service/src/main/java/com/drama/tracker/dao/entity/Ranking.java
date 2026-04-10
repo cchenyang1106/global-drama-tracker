@@ -48,6 +48,7 @@ public class Ranking implements Serializable {
     /**
      * 排名
      */
+    @TableField("`rank`")
     private Integer rank;
 
     /**
@@ -80,4 +81,10 @@ public class Ranking implements Serializable {
      */
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
+
+    /**
+     * 剧集名称（非持久化字段，查询时填充）
+     */
+    @TableField(exist = false)
+    private String dramaTitle;
 }

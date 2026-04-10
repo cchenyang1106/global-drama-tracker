@@ -1,24 +1,21 @@
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 spring:
   application:
     name: drama-tracker-service
 
-  profiles:
-    active: dev
-
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3307/drama_tracker?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
-    username: root
-    password: root
+    url: ${DATABASE_URL:jdbc:mysql://localhost:3306/drama_tracker?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true}
+    username: ${DATABASE_USERNAME:root}
+    password: ${DATABASE_PASSWORD:root}
 
   data:
     redis:
-      host: localhost
-      port: 6379
-      password:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
       database: 0
       timeout: 10000
 
@@ -27,7 +24,6 @@ spring:
     time-zone: Asia/Shanghai
     default-property-inclusion: non_null
 
-# MyBatis Plus 配置
 mybatis-plus:
   mapper-locations: classpath:/mapper/**/*.xml
   type-aliases-package: com.drama.tracker.dao.entity
@@ -40,14 +36,10 @@ mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
     cache-enabled: false
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
-# Knife4j API 文档配置
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
-    tags-sorter: alpha
-    operations-sorter: alpha
   api-docs:
     path: /v3/api-docs
 
@@ -55,36 +47,28 @@ knife4j:
   enable: true
   setting:
     language: zh_cn
-    swagger-model-name: 实体类列表
 
-# 日志配置
 logging:
   level:
-    com.drama.tracker: debug
-    org.springframework.security: debug
+    com.drama.tracker: info
+    org.springframework.security: warn
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
-# JWT 配置
 jwt:
-  secret: drama-tracker-secret-key-2024-global-drama-tracker-platform
-  expiration: 86400000  # 24小时
+  secret: ${JWT_SECRET:drama-tracker-secret-key-2024-global-drama-tracker-platform}
+  expiration: 86400000
   header: Authorization
   prefix: Bearer
 
-# 自定义配置
 app:
   name: Global Drama Tracker
   version: 1.0.0
 
-# TMDB API 配置 (The Movie Database - 免费开放影视数据库)
-# 申请地址: https://www.themoviedb.org/settings/api
 tmdb:
   api-key: ${TMDB_API_KEY:}
   base-url: https://api.themoviedb.org/3
   image-base-url: https://image.tmdb.org/t/p
   language: zh-CN
-  # 是否启用自动抓取 (需要配置 api-key 后设为 true)
   auto-fetch-enabled: false
-  # 每次抓取页数 (每页20条)
   fetch-pages: 3

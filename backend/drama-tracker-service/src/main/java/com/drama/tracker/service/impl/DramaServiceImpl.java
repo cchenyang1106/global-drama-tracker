@@ -39,10 +39,15 @@ public class DramaServiceImpl extends ServiceImpl<DramaMapper, Drama> implements
         wrapper.eq(StringUtils.isNotBlank(queryDto.getRegion()), Drama::getRegion, queryDto.getRegion())
                 .eq(queryDto.getType() != null, Drama::getType, queryDto.getType())
                 .eq(queryDto.getStatus() != null, Drama::getStatus, queryDto.getStatus())
-                .like(StringUtils.isNotBlank(queryDto.getGenre()), Drama::getGenres, queryDto.getGenre())
-                .ge(queryDto.getYear() != null, Drama::getReleaseDate, LocalDate.of(queryDto.getYear(), 1, 1))
-                .le(queryDto.getYear() != null, Drama::getReleaseDate, LocalDate.of(queryDto.getYear(), 12, 31))
-                .orderByDesc(Drama::getHotScore);
+                .like(StringUtils.isNotBlank(queryDto.getGenre()), Drama::getGenres, queryDto.getGenre());
+
+        // year 不为 null 时才构造日期范围条件，避免 NPE
+        if (queryDto.getYear() != null) {
+            wrapper.ge(Drama::getReleaseDate, LocalDate.of(queryDto.getYear(), 1, 1))
+                    .le(Drama::getReleaseDate, LocalDate.of(queryDto.getYear(), 12, 31));
+        }
+
+        wrapper.orderByDesc(Drama::getHotScore);
 
         return this.page(page, wrapper);
     }
@@ -65,19 +70,32 @@ public class DramaServiceImpl extends ServiceImpl<DramaMapper, Drama> implements
 
     /**
      * 获取今日更新的剧集。
+     * 优先查询今天有更新的连载中剧集；如果为空，则回退为最近更新的热门剧集。
      *
      * @param region 地区（可选）
      * @return 剧集列表
      */
     @Override
     public List<Drama> getTodayUpdated(String region) {
-        LambdaQueryWrapper<Drama> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Drama::getStatus, 1) // 连载中
+        // 优先查询今天有更新的连载中剧集
+        LambdaQueryWrapper<Drama> todayWrapper = new LambdaQueryWrapper<>();
+        todayWrapper.eq(Drama::getStatus, 1)
                 .eq(StringUtils.isNotBlank(region), Drama::getRegion, region)
                 .apply("DATE(update_time) = CURDATE()")
                 .orderByDesc(Drama::getHotScore);
 
-        return this.list(wrapper);
+        List<Drama> todayList = this.list(todayWrapper);
+        if (!todayList.isEmpty()) {
+            return todayList;
+        }
+
+        // 回退：返回最近更新的热门剧集（不限今日，按热度排序，取前 12 条）
+        LambdaQueryWrapper<Drama> fallbackWrapper = new LambdaQueryWrapper<>();
+        fallbackWrapper.eq(StringUtils.isNotBlank(region), Drama::getRegion, region)
+                .orderByDesc(Drama::getHotScore)
+                .last("LIMIT 12");
+
+        return this.list(fallbackWrapper);
     }
 
     /**
