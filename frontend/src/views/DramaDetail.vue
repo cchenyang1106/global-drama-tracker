@@ -97,6 +97,65 @@
           </a>
         </div>
       </section>
+
+      <!-- 评论讨论区 -->
+      <section class="section">
+        <h2 class="section-title">💬 评论讨论区</h2>
+
+        <!-- 发表评论表单 -->
+        <div class="comment-form">
+          <div class="form-row">
+            <el-input v-model="commentForm.nickname" placeholder="你的昵称" size="default" style="width: 200px" />
+            <div class="rating-input">
+              <span class="rating-label">我的评分：</span>
+              <el-rate v-model="commentForm.rating" :max="10" :colors="['#ff9900', '#ff9900', '#ff0000']" allow-half show-score />
+            </div>
+          </div>
+          <el-input
+            v-model="commentForm.content"
+            type="textarea"
+            :rows="3"
+            placeholder="写下你对这部剧的看法..."
+            maxlength="500"
+            show-word-limit
+          />
+          <div class="form-actions">
+            <el-checkbox v-model="commentForm.spoiler">包含剧透</el-checkbox>
+            <el-button type="primary" :loading="submitting" @click="submitComment" :disabled="!commentForm.content.trim()">
+              发表评论
+            </el-button>
+          </div>
+        </div>
+
+        <!-- 评论列表 -->
+        <div class="comment-list">
+          <div v-if="comments.length === 0" class="no-comments">
+            暂无评论，来发表第一条评论吧！
+          </div>
+          <div v-for="c in comments" :key="c.id" class="comment-item">
+            <div class="comment-header">
+              <span class="comment-author">{{ c.nickname || '匿名用户' }}</span>
+              <el-tag v-if="c.rating" type="warning" size="small" round>{{ Number(c.rating).toFixed(1) }} 分</el-tag>
+              <el-tag v-if="c.spoiler" type="danger" size="small" round>剧透</el-tag>
+              <span class="comment-time">{{ formatTime(c.createTime) }}</span>
+            </div>
+            <p class="comment-content" :class="{ 'spoiler-blur': c.spoiler && !c._showSpoiler }">
+              {{ c.content }}
+            </p>
+            <span v-if="c.spoiler && !c._showSpoiler" class="spoiler-tip" @click="c._showSpoiler = true">点击查看剧透内容</span>
+            <div class="comment-footer">
+              <el-button text size="small" @click="handleLike(c)">
+                👍 {{ c.likeCount || 0 }}
+              </el-button>
+            </div>
+          </div>
+
+          <!-- 加载更多 -->
+          <div v-if="hasMore" class="load-more">
+            <el-button text @click="loadMoreComments">加载更多评论...</el-button>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 
@@ -114,14 +173,28 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { getDramaDetail } from '@/api/drama'
+import { getComments, addComment, likeComment } from '@/api/comment'
 import { DEFAULT_POSTER, getRegionInfo, getTypeName, getStatusInfo } from '@/utils/constants'
 
 const route = useRoute()
 const drama = ref(null)
 const loading = ref(true)
+
+// 评论相关
+const comments = ref([])
+const commentPage = ref(1)
+const hasMore = ref(false)
+const submitting = ref(false)
+const commentForm = reactive({
+  nickname: '',
+  content: '',
+  rating: 0,
+  spoiler: false,
+})
 
 function onImgError(e) {
   e.target.src = DEFAULT_POSTER
@@ -133,12 +206,71 @@ function formatHot(val) {
   return val
 }
 
+function formatTime(t) {
+  if (!t) return ''
+  const d = new Date(t)
+  return d.toLocaleDateString('zh-CN') + ' ' + d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+}
+
+async function loadComments() {
+  try {
+    const data = await getComments(route.params.id, commentPage.value, 10)
+    const newComments = (data.records || data.list || []).map(c => ({ ...c, _showSpoiler: false }))
+    if (commentPage.value === 1) {
+      comments.value = newComments
+    } else {
+      comments.value.push(...newComments)
+    }
+    hasMore.value = comments.value.length < (data.total || 0)
+  } catch {
+    // ignore
+  }
+}
+
+function loadMoreComments() {
+  commentPage.value++
+  loadComments()
+}
+
+async function submitComment() {
+  if (!commentForm.content.trim()) return
+  submitting.value = true
+  try {
+    await addComment({
+      dramaId: Number(route.params.id),
+      nickname: commentForm.nickname || '匿名用户',
+      content: commentForm.content,
+      rating: commentForm.rating > 0 ? commentForm.rating : null,
+      spoiler: commentForm.spoiler,
+    })
+    ElMessage.success('评论发表成功！')
+    commentForm.content = ''
+    commentForm.rating = 0
+    commentForm.spoiler = false
+    commentPage.value = 1
+    await loadComments()
+  } catch {
+    ElMessage.error('评论发表失败')
+  }
+  submitting.value = false
+}
+
+async function handleLike(comment) {
+  try {
+    await likeComment(comment.id)
+    comment.likeCount = (comment.likeCount || 0) + 1
+  } catch {
+    // ignore
+  }
+}
+
 onMounted(async () => {
   loading.value = true
   try {
     drama.value = await getDramaDetail(route.params.id)
   } catch { drama.value = null }
   loading.value = false
+  loadComments()
 })
 </script>
 
@@ -316,5 +448,113 @@ onMounted(async () => {
   background: var(--bg-card-hover);
   color: var(--text-primary);
   transform: translateY(-2px);
+}
+
+/* 评论区样式 */
+.comment-form {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.rating-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rating-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.comment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.no-comments {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 40px 0;
+  font-size: 14px;
+}
+
+.comment-item {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+
+.comment-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.comment-author {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--primary-light);
+}
+
+.comment-time {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+.comment-content {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.spoiler-blur {
+  filter: blur(6px);
+  user-select: none;
+  cursor: pointer;
+}
+
+.spoiler-tip {
+  font-size: 12px;
+  color: var(--primary-light);
+  cursor: pointer;
+}
+
+.spoiler-tip:hover {
+  text-decoration: underline;
+}
+
+.comment-footer {
+  display: flex;
+  gap: 12px;
+}
+
+.load-more {
+  text-align: center;
+  padding: 12px 0;
 }
 </style>
