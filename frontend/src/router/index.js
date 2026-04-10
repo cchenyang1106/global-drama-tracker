@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
-  // ========== 用户端路由（使用 App.vue 布局） ==========
+  // ========== 用户端路由 ==========
   {
     path: '/',
     name: 'Home',
@@ -33,17 +33,31 @@ const routes = [
     meta: { title: '搜索结果' },
   },
 
-  // ========== 管理端路由（使用独立 AdminLayout 布局） ==========
+  // ========== 管理端登录页（独立布局） ==========
+  {
+    path: '/admin/login',
+    name: 'AdminLogin',
+    component: () => import('@/views/AdminLogin.vue'),
+    meta: { title: '管理端登录', layout: 'admin' },
+  },
+
+  // ========== 管理端路由（需要登录） ==========
   {
     path: '/admin',
     component: () => import('@/layouts/AdminLayout.vue'),
-    meta: { layout: 'admin' },
+    meta: { layout: 'admin', requiresAuth: true },
     children: [
       {
         path: '',
         name: 'Admin',
         component: () => import('@/views/Admin.vue'),
-        meta: { title: '数据管理', layout: 'admin' },
+        meta: { title: '数据管理', layout: 'admin', requiresAuth: true },
+      },
+      {
+        path: 'comments',
+        name: 'AdminComments',
+        component: () => import('@/views/AdminComments.vue'),
+        meta: { title: '评论管理', layout: 'admin', requiresAuth: true },
       },
     ],
   },
@@ -57,8 +71,16 @@ const router = createRouter({
   },
 })
 
+// 管理端登录守卫
 router.beforeEach((to) => {
   document.title = `${to.meta.title || ''} - Global Drama Tracker`
+
+  if (to.meta.requiresAuth) {
+    const token = localStorage.getItem('admin_token')
+    if (!token) {
+      return { name: 'AdminLogin' }
+    }
+  }
 })
 
 export default router

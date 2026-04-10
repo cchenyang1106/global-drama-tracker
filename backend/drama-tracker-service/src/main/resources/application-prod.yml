@@ -64,6 +64,9 @@ jwt:
 app:
   name: Global Drama Tracker
   version: 1.0.0
+  admin:
+    username: ${ADMIN_USERNAME:admin}
+    password: ${ADMIN_PASSWORD:drama2026}
 
 tmdb:
   api-key: ${TMDB_API_KEY:}

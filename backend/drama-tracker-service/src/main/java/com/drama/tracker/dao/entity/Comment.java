@@ -35,6 +35,11 @@ public class Comment implements Serializable {
     private Long userId;
 
     /**
+     * 昵称
+     */
+    private String nickname;
+
+    /**
      * 父评论ID（用于回复）
      */
     private Long parentId;
@@ -68,6 +73,11 @@ public class Comment implements Serializable {
      * 是否包含剧透
      */
     private Boolean spoiler;
+
+    /**
+     * 是否精选
+     */
+    private Boolean featured;
 
     /**
      * 状态 (0:待审核 1:已通过 2:已拒绝 3:已删除)

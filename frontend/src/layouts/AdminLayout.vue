@@ -14,9 +14,16 @@
           <span class="link-icon">📊</span>
           <span>数据管理</span>
         </router-link>
+        <router-link to="/admin/comments" class="sidebar-link" active-class="active">
+          <span class="link-icon">💬</span>
+          <span>评论管理</span>
+        </router-link>
       </nav>
 
       <div class="sidebar-footer">
+        <a class="back-link" @click="logout" style="cursor:pointer">
+          <span>🚪 退出登录</span>
+        </a>
         <router-link to="/" class="back-link">
           <span>← 返回用户端</span>
         </router-link>
@@ -48,9 +55,16 @@
 </template>
 
 <script setup>
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
+const router = useRouter()
+
+function logout() {
+  localStorage.removeItem('admin_token')
+  localStorage.removeItem('admin_user')
+  router.push('/admin/login')
+}
 </script>
 
 <style scoped>

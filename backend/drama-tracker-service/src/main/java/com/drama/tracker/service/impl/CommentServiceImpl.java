@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.drama.tracker.dao.entity.Comment;
 import com.drama.tracker.dao.mapper.CommentMapper;
 import com.drama.tracker.service.CommentService;
+import com.drama.tracker.service.DramaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,14 +17,30 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 评论服务实现类。
- *
- * @author drama-tracker
- */
 @Service
 @RequiredArgsConstructor
 public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> implements CommentService {
+
+    private final DramaService dramaService;
+
+    private Map<String, Object> toMap(Comment c) {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("id", c.getId());
+        map.put("dramaId", c.getDramaId());
+        map.put("nickname", c.getNickname() != null ? c.getNickname() : "匿名用户");
+        map.put("content", c.getContent());
+        map.put("rating", c.getRating());
+        map.put("likeCount", c.getLikeCount() != null ? c.getLikeCount() : 0);
+        map.put("spoiler", c.getSpoiler() != null && c.getSpoiler());
+        map.put("featured", c.getFeatured() != null && c.getFeatured());
+        map.put("createTime", c.getCreateTime());
+        // 附带剧集名称
+        try {
+            var drama = dramaService.getById(c.getDramaId());
+            if (drama != null) map.put("dramaTitle", drama.getTitle());
+        } catch (Exception ignored) {}
+        return map;
+    }
 
     @Override
     public Page<Map<String, Object>> getCommentsByDrama(Long dramaId, Integer page, Integer size) {
@@ -32,26 +49,12 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         wrapper.eq(Comment::getDramaId, dramaId)
                 .eq(Comment::getStatus, 1)
                 .isNull(Comment::getParentId)
+                .orderByDesc(Comment::getFeatured)
                 .orderByDesc(Comment::getCreateTime);
 
         Page<Comment> result = this.page(commentPage, wrapper);
-
-        // 转换为包含额外信息的 Map
         Page<Map<String, Object>> mapPage = new Page<>(result.getCurrent(), result.getSize(), result.getTotal());
-        List<Map<String, Object>> records = result.getRecords().stream().map(c -> {
-            Map<String, Object> map = new LinkedHashMap<>();
-            map.put("id", c.getId());
-            map.put("dramaId", c.getDramaId());
-            map.put("content", c.getContent());
-            map.put("rating", c.getRating());
-            map.put("likeCount", c.getLikeCount() != null ? c.getLikeCount() : 0);
-            map.put("spoiler", c.getSpoiler() != null && c.getSpoiler());
-            map.put("createTime", c.getCreateTime());
-            // 使用 userId 作为昵称（简化处理，无需登录）
-            map.put("nickname", c.getUserId() != null ? "用户" + c.getUserId() : "匿名用户");
-            return map;
-        }).toList();
-        mapPage.setRecords(records);
+        mapPage.setRecords(result.getRecords().stream().map(this::toMap).toList());
         return mapPage;
     }
 
@@ -59,14 +62,15 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     public Comment addComment(Long dramaId, String nickname, String content, Double rating, Boolean spoiler) {
         Comment comment = new Comment();
         comment.setDramaId(dramaId);
-        // 用 nickname 的 hashCode 作为 userId（简化处理，无需真实用户系统）
+        comment.setNickname(nickname != null && !nickname.isBlank() ? nickname : "匿名用户");
         comment.setUserId((long) Math.abs(nickname.hashCode() % 100000));
         comment.setContent(content);
         if (rating != null && rating > 0) {
             comment.setRating(BigDecimal.valueOf(rating).setScale(1, RoundingMode.HALF_UP));
         }
         comment.setSpoiler(spoiler != null && spoiler);
-        comment.setStatus(1); // 直接通过
+        comment.setFeatured(false);
+        comment.setStatus(1);
         comment.setLikeCount(0);
         comment.setReplyCount(0);
         comment.setCreateTime(LocalDateTime.now());
@@ -90,32 +94,55 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         wrapper.eq(Comment::getDramaId, dramaId)
                 .eq(Comment::getStatus, 1)
                 .isNotNull(Comment::getRating);
-
         List<Comment> comments = this.list(wrapper);
         Map<String, Object> stats = new LinkedHashMap<>();
-
         if (comments.isEmpty()) {
             stats.put("avgRating", 0);
             stats.put("totalRatings", 0);
-            stats.put("distribution", new int[10]);
             return stats;
         }
-
-        double sum = comments.stream()
-                .mapToDouble(c -> c.getRating().doubleValue())
-                .sum();
-        double avg = sum / comments.size();
-
-        // 评分分布 (1-10)
-        int[] distribution = new int[10];
-        for (Comment c : comments) {
-            int idx = Math.min(c.getRating().intValue() - 1, 9);
-            if (idx >= 0) distribution[idx]++;
-        }
-
+        double avg = comments.stream().mapToDouble(c -> c.getRating().doubleValue()).average().orElse(0);
         stats.put("avgRating", BigDecimal.valueOf(avg).setScale(1, RoundingMode.HALF_UP));
         stats.put("totalRatings", comments.size());
-        stats.put("distribution", distribution);
         return stats;
+    }
+
+    @Override
+    public List<Map<String, Object>> getFeaturedComments(Long dramaId, Integer limit) {
+        LambdaQueryWrapper<Comment> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Comment::getStatus, 1)
+                .eq(Comment::getFeatured, true);
+        if (dramaId != null) {
+            wrapper.eq(Comment::getDramaId, dramaId);
+        }
+        wrapper.orderByDesc(Comment::getCreateTime)
+                .last("LIMIT " + (limit != null ? limit : 10));
+        return this.list(wrapper).stream().map(this::toMap).toList();
+    }
+
+    @Override
+    public void setFeatured(Long commentId, boolean featured) {
+        Comment comment = this.getById(commentId);
+        if (comment != null) {
+            comment.setFeatured(featured);
+            this.updateById(comment);
+        }
+    }
+
+    @Override
+    public void deleteComment(Long commentId) {
+        this.removeById(commentId);
+    }
+
+    @Override
+    public Page<Map<String, Object>> getAllComments(Integer page, Integer size) {
+        Page<Comment> commentPage = new Page<>(page, size);
+        LambdaQueryWrapper<Comment> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Comment::getStatus, 1)
+                .orderByDesc(Comment::getCreateTime);
+        Page<Comment> result = this.page(commentPage, wrapper);
+        Page<Map<String, Object>> mapPage = new Page<>(result.getCurrent(), result.getSize(), result.getTotal());
+        mapPage.setRecords(result.getRecords().stream().map(this::toMap).toList());
+        return mapPage;
     }
 }

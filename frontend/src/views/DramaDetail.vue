@@ -102,6 +102,25 @@
       <section class="section">
         <h2 class="section-title">💬 评论讨论区</h2>
 
+        <!-- 精选评论展示 -->
+        <div v-if="featuredComments.length > 0" class="featured-section">
+          <h3 class="featured-title">⭐ 精选评论</h3>
+          <div class="featured-list">
+            <div v-for="c in featuredComments" :key="c.id" class="featured-item">
+              <div class="featured-header">
+                <span class="comment-author">{{ c.nickname }}</span>
+                <el-tag type="warning" size="small" round>精选</el-tag>
+                <el-tag v-if="c.rating" size="small" round>{{ Number(c.rating).toFixed(1) }} 分</el-tag>
+              </div>
+              <p class="featured-content">{{ c.content }}</p>
+              <div class="featured-footer">
+                <span>👍 {{ c.likeCount || 0 }}</span>
+                <span class="comment-time">{{ formatTime(c.createTime) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- 发表评论表单 -->
         <div class="comment-form">
           <div class="form-row">
@@ -177,7 +196,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getDramaDetail } from '@/api/drama'
-import { getComments, addComment, likeComment } from '@/api/comment'
+import { getComments, addComment, likeComment, getFeaturedComments } from '@/api/comment'
 import { DEFAULT_POSTER, getRegionInfo, getTypeName, getStatusInfo } from '@/utils/constants'
 
 const route = useRoute()
@@ -186,6 +205,7 @@ const loading = ref(true)
 
 // 评论相关
 const comments = ref([])
+const featuredComments = ref([])
 const commentPage = ref(1)
 const hasMore = ref(false)
 const submitting = ref(false)
@@ -271,7 +291,14 @@ onMounted(async () => {
   } catch { drama.value = null }
   loading.value = false
   loadComments()
+  loadFeatured()
 })
+
+async function loadFeatured() {
+  try {
+    featuredComments.value = await getFeaturedComments(route.params.id, 5)
+  } catch { /* ignore */ }
+}
 </script>
 
 <style scoped>
@@ -448,6 +475,52 @@ onMounted(async () => {
   background: var(--bg-card-hover);
   color: var(--text-primary);
   transform: translateY(-2px);
+}
+
+/* 精选评论 */
+.featured-section {
+  margin-bottom: 24px;
+}
+
+.featured-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fbbf24;
+  margin-bottom: 12px;
+}
+
+.featured-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.featured-item {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(245, 158, 11, 0.03));
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+
+.featured-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.featured-content {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.featured-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
 /* 评论区样式 */

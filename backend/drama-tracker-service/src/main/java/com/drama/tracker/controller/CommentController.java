@@ -9,13 +9,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
-/**
- * 评论控制器。
- *
- * @author drama-tracker
- */
 @Tag(name = "评论管理", description = "剧集评论、评分相关接口")
 @RestController
 @RequestMapping("/api/comment")
@@ -24,14 +20,6 @@ public class CommentController {
 
     private final CommentService commentService;
 
-    /**
-     * 获取剧集评论列表。
-     *
-     * @param dramaId 剧集ID
-     * @param page    页码
-     * @param size    每页大小
-     * @return 评论分页数据
-     */
     @Operation(summary = "获取剧集评论列表")
     @GetMapping("/list/{dramaId}")
     public Result<Page<Map<String, Object>>> getComments(
@@ -41,12 +29,14 @@ public class CommentController {
         return Result.success(commentService.getCommentsByDrama(dramaId, page, size));
     }
 
-    /**
-     * 发表评论。
-     *
-     * @param body 评论内容
-     * @return 评论对象
-     */
+    @Operation(summary = "获取精选评论")
+    @GetMapping("/featured")
+    public Result<List<Map<String, Object>>> getFeaturedComments(
+            @RequestParam(required = false) Long dramaId,
+            @RequestParam(defaultValue = "10") Integer limit) {
+        return Result.success(commentService.getFeaturedComments(dramaId, limit));
+    }
+
     @Operation(summary = "发表评论")
     @PostMapping("/add")
     public Result<Comment> addComment(@RequestBody Map<String, Object> body) {
@@ -56,17 +46,9 @@ public class CommentController {
         Double rating = body.containsKey("rating") && body.get("rating") != null
                 ? Double.parseDouble(body.get("rating").toString()) : null;
         Boolean spoiler = body.containsKey("spoiler") && Boolean.TRUE.equals(body.get("spoiler"));
-
-        Comment comment = commentService.addComment(dramaId, nickname, content, rating, spoiler);
-        return Result.success(comment);
+        return Result.success(commentService.addComment(dramaId, nickname, content, rating, spoiler));
     }
 
-    /**
-     * 点赞评论。
-     *
-     * @param id 评论ID
-     * @return 操作结果
-     */
     @Operation(summary = "点赞评论")
     @PostMapping("/like/{id}")
     public Result<String> likeComment(@PathVariable Long id) {
@@ -74,15 +56,33 @@ public class CommentController {
         return Result.success("点赞成功");
     }
 
-    /**
-     * 获取剧集评分统计。
-     *
-     * @param dramaId 剧集ID
-     * @return 评分统计
-     */
     @Operation(summary = "获取剧集评分统计")
     @GetMapping("/rating-stats/{dramaId}")
     public Result<Map<String, Object>> getRatingStats(@PathVariable Long dramaId) {
         return Result.success(commentService.getRatingStats(dramaId));
+    }
+
+    // ========== 管理端接口 ==========
+
+    @Operation(summary = "获取所有评论（管理端）")
+    @GetMapping("/admin/list")
+    public Result<Page<Map<String, Object>>> getAllComments(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "20") Integer size) {
+        return Result.success(commentService.getAllComments(page, size));
+    }
+
+    @Operation(summary = "设置/取消精选")
+    @PostMapping("/admin/featured/{id}")
+    public Result<String> setFeatured(@PathVariable Long id, @RequestParam boolean featured) {
+        commentService.setFeatured(id, featured);
+        return Result.success(featured ? "已加精" : "已取消加精");
+    }
+
+    @Operation(summary = "删除评论")
+    @DeleteMapping("/admin/{id}")
+    public Result<String> deleteComment(@PathVariable Long id) {
+        commentService.deleteComment(id);
+        return Result.success("删除成功");
     }
 }
