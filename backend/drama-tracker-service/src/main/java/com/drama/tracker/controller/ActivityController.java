@@ -10,6 +10,9 @@ import com.drama.tracker.dao.mapper.ActivityMapper;
 import com.drama.tracker.dao.mapper.UserMapper;
 import com.drama.tracker.dao.mapper.UserProfileMapper;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -35,8 +38,9 @@ public class ActivityController {
     private Long getUserIdFromToken(String auth) {
         if (auth == null || !auth.startsWith("Bearer ")) return null;
         try {
-            return Long.valueOf(Jwts.parser().setSigningKey(jwtSecret.getBytes())
-                    .parseClaimsJws(auth.substring(7)).getBody().getSubject());
+            SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+            return Long.valueOf(Jwts.parser().verifyWith(key).build()
+                    .parseSignedClaims(auth.substring(7)).getPayload().getSubject());
         } catch (Exception e) { return null; }
     }
 
