@@ -10,33 +10,26 @@
     <header class="navbar">
       <div class="navbar-inner">
         <router-link to="/" class="logo">
-          <span class="logo-icon">🎬</span>
-          <span class="logo-text">Global Drama Tracker</span>
+          <span class="logo-icon">🎯</span>
+          <span class="logo-text">找搭子</span>
         </router-link>
 
         <nav class="nav-links">
           <router-link to="/" class="nav-link" exact-active-class="active">
-            <el-icon><HomeFilled /></el-icon>首页
+            🏠 广场
           </router-link>
-          <router-link to="/dramas" class="nav-link" active-class="active">
-            <el-icon><Film /></el-icon>剧集库
+          <router-link to="/publish" class="nav-link" active-class="active" v-if="userStore.isLoggedIn">
+            ✏️ 发布
           </router-link>
-          <router-link to="/ranking" class="nav-link" active-class="active">
-            <el-icon><Trophy /></el-icon>排行榜
+          <router-link to="/messages" class="nav-link" active-class="active" v-if="userStore.isLoggedIn">
+            💬 消息
+          </router-link>
+          <router-link to="/profile" class="nav-link" active-class="active" v-if="userStore.isLoggedIn">
+            👤 我的
           </router-link>
         </nav>
 
-        <div class="nav-search">
-          <el-input
-            v-model="searchKeyword"
-            placeholder="搜索剧集..."
-            :prefix-icon="Search"
-            clearable
-            size="default"
-            @keyup.enter="handleSearch"
-            class="search-input"
-          />
-        </div>
+        <div class="nav-spacer"></div>
 
         <div class="nav-user">
           <template v-if="userStore.isLoggedIn">
@@ -70,31 +63,23 @@
 
     <!-- 底部 -->
     <footer class="footer">
-      <p>© 2026 Global Drama Tracker · 全球剧集追踪平台</p>
+      <p>© 2026 找搭子 · 找到志同道合的伙伴</p>
     </footer>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { Search } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
-const searchKeyword = ref('')
 
 const isAdminLayout = computed(() => {
   return route.matched.some(record => record.meta.layout === 'admin')
 })
-
-function handleSearch() {
-  if (searchKeyword.value.trim()) {
-    router.push({ path: '/search', query: { q: searchKeyword.value.trim() } })
-  }
-}
 
 function handleLogout() {
   userStore.logout()
@@ -175,30 +160,8 @@ onMounted(() => {
   background: rgba(99, 102, 241, 0.15);
 }
 
-.nav-search {
-  margin-left: auto;
-  width: 260px;
-}
-
-.search-input :deep(.el-input__wrapper) {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  box-shadow: none;
-  color: var(--text-primary);
-}
-
-.search-input :deep(.el-input__wrapper:hover),
-.search-input :deep(.el-input__wrapper.is-focus) {
-  border-color: var(--primary);
-}
-
-.search-input :deep(.el-input__inner) {
-  color: var(--text-primary);
-}
-
-.search-input :deep(.el-input__inner::placeholder) {
-  color: var(--text-muted);
+.nav-spacer {
+  flex: 1;
 }
 
 .main-content {

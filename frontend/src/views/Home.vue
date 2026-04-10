@@ -1,327 +1,134 @@
 <template>
-  <div class="home fade-in">
-    <!-- Hero Banner -->
+  <div class="home-page">
     <section class="hero">
-      <div class="hero-bg"></div>
-      <div class="hero-content">
-        <h1 class="hero-title">
-          <span class="gradient-text">全球剧集</span> 一网打尽
-        </h1>
-        <p class="hero-desc">追踪全球热门剧集 · 实时更新排行榜 · 发现你的下一部好剧</p>
-        <div class="hero-regions">
-          <router-link
-            v-for="r in regionList"
-            :key="r.code"
-            :to="`/dramas?region=${r.code}`"
-            class="hero-region-btn"
-          >
-            {{ r.emoji }} {{ r.label }}
-          </router-link>
+      <h1>找搭子，一起玩 🎯</h1>
+      <p>发布你的活动需求，匹配志同道合的伙伴</p>
+      <div class="hero-actions">
+        <el-input v-model="keyword" placeholder="搜索活动..." :prefix-icon="Search" clearable
+          @keyup.enter="loadActivities" class="search-box" />
+        <router-link to="/publish" class="publish-btn" v-if="userStore.isLoggedIn">发布活动</router-link>
+        <router-link to="/login" class="publish-btn" v-else>登录后发布</router-link>
+      </div>
+    </section>
+
+    <section class="categories">
+      <span v-for="cat in categories" :key="cat.value"
+        :class="['cat-tag', { active: currentCat === cat.value }]"
+        @click="currentCat = cat.value; loadActivities()">
+        {{ cat.icon }} {{ cat.label }}
+      </span>
+    </section>
+
+    <section class="activity-list">
+      <div v-if="loading" class="loading-tip">加载中...</div>
+      <div v-else-if="activities.length === 0" class="empty-tip">暂无活动，快来发布第一个吧！</div>
+      <div v-for="item in activities" :key="item.id" class="activity-card" @click="$router.push(`/activity/${item.id}`)">
+        <div class="card-header">
+          <div class="author-info">
+            <el-avatar :size="36" :src="item.authorAvatar" style="background:#6366f1">
+              {{ (item.authorName || '?').charAt(0) }}
+            </el-avatar>
+            <div>
+              <div class="author-name">{{ item.authorName || '匿名' }}</div>
+              <div class="author-sub">{{ item.authorCity || '' }}</div>
+            </div>
+          </div>
+          <el-tag size="small" :type="catColor(item.category)" round>{{ item.category }}</el-tag>
+        </div>
+        <h3 class="card-title">{{ item.title }}</h3>
+        <p class="card-desc">{{ item.description }}</p>
+        <div class="card-meta">
+          <span v-if="item.location">📍 {{ item.location }}</span>
+          <span v-if="item.activityTime">🕐 {{ item.activityTime }}</span>
+          <span>👥 {{ item.joinedCount || 0 }}/{{ item.maxPeople || 1 }}</span>
+          <span>👁 {{ item.viewCount || 0 }}</span>
+        </div>
+        <div v-if="item.tags" class="card-tags">
+          <el-tag v-for="t in item.tags.split(',')" :key="t" size="small" type="info" round>{{ t }}</el-tag>
         </div>
       </div>
     </section>
 
-    <div class="page-container">
-      <!-- 今日更新 -->
-      <section class="section">
-        <SectionHeader icon="📺" title="今日更新" subtitle="最新剧集动态" more-link="/dramas" />
-        <div v-if="todayLoading" class="loading-grid">
-          <el-skeleton v-for="i in 6" :key="i" :rows="4" animated class="skeleton-card" />
-        </div>
-        <div v-else class="drama-grid">
-          <DramaCard
-            v-for="drama in todayList"
-            :key="drama.id"
-            :drama="drama"
-            :show-progress="true"
-          />
-        </div>
-        <el-empty v-if="!todayLoading && !todayList.length" description="今日暂无更新" />
-      </section>
-
-      <!-- 热门排行 -->
-      <section class="section">
-        <SectionHeader icon="🔥" title="热门排行" subtitle="实时热度榜" more-link="/ranking" />
-        <div class="ranking-panel">
-          <div class="ranking-tabs">
-            <button
-              v-for="tab in rankTabs"
-              :key="tab.key"
-              :class="['rank-tab', { active: activeRankTab === tab.key }]"
-              @click="switchRankTab(tab.key)"
-            >
-              {{ tab.label }}
-            </button>
-          </div>
-          <div v-if="rankLoading" style="padding: 20px;">
-            <el-skeleton :rows="8" animated />
-          </div>
-          <RankingList v-else :list="currentRankList" />
-        </div>
-      </section>
-
-      <!-- 各地区热门 -->
-      <section class="section">
-        <SectionHeader icon="🌏" title="各地区热门" subtitle="全球剧集精选" />
-        <div class="region-tabs">
-          <button
-            v-for="r in regionList"
-            :key="r.code"
-            :class="['region-tab', { active: activeRegion === r.code }]"
-            @click="switchRegion(r.code)"
-          >
-            {{ r.emoji }} {{ r.label }}
-          </button>
-        </div>
-        <div v-if="regionLoading" class="loading-grid">
-          <el-skeleton v-for="i in 5" :key="i" :rows="4" animated class="skeleton-card" />
-        </div>
-        <div v-else class="drama-grid">
-          <DramaCard
-            v-for="drama in regionDramas"
-            :key="drama.id"
-            :drama="drama"
-          />
-        </div>
-        <el-empty v-if="!regionLoading && !regionDramas.length" description="该地区暂无剧集" />
-      </section>
+    <div v-if="hasMore" class="load-more">
+      <el-button text @click="page++; loadActivities(true)">加载更多...</el-button>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getTodayUpdated, getDramasByRegion } from '@/api/drama'
-import { getDailyRanking, getWeeklyRanking, getMonthlyRanking } from '@/api/ranking'
-import DramaCard from '@/components/DramaCard.vue'
-import SectionHeader from '@/components/SectionHeader.vue'
-import RankingList from '@/components/RankingList.vue'
-import { REGION_LIST } from '@/utils/constants'
+import { Search } from '@element-plus/icons-vue'
+import { getActivities } from '@/api/activity'
+import { useUserStore } from '@/stores/user'
 
-const regionList = REGION_LIST.filter(r => r.code !== 'OT')
+const userStore = useUserStore()
+const keyword = ref('')
+const currentCat = ref('all')
+const activities = ref([])
+const loading = ref(false)
+const page = ref(1)
+const hasMore = ref(false)
 
-// --- 今日更新 ---
-const todayList = ref([])
-const todayLoading = ref(true)
-
-async function loadToday() {
-  todayLoading.value = true
-  try {
-    const data = await getTodayUpdated()
-    todayList.value = (data || []).slice(0, 12)
-  } catch { todayList.value = [] }
-  todayLoading.value = false
-}
-
-// --- 热门排行 ---
-const rankTabs = [
-  { key: 'daily', label: '日榜' },
-  { key: 'weekly', label: '周榜' },
-  { key: 'monthly', label: '月榜' },
+const categories = [
+  { value: 'all', label: '全部', icon: '🔥' },
+  { value: '旅游', label: '旅游', icon: '✈️' },
+  { value: '运动', label: '运动', icon: '⚽' },
+  { value: '美食', label: '美食', icon: '🍔' },
+  { value: '电影', label: '电影', icon: '🎬' },
+  { value: '学习', label: '学习', icon: '📚' },
+  { value: '游戏', label: '游戏', icon: '🎮' },
+  { value: '其他', label: '其他', icon: '💡' },
 ]
-const activeRankTab = ref('daily')
-const rankLoading = ref(true)
-const rankData = ref({ daily: [], weekly: [], monthly: [] })
-const currentRankList = ref([])
 
-async function loadRanking() {
-  rankLoading.value = true
+function catColor(cat) {
+  const map = { '旅游': 'success', '运动': 'warning', '美食': 'danger', '电影': '', '学习': 'info', '游戏': 'primary' }
+  return map[cat] || 'info'
+}
+
+async function loadActivities(append = false) {
+  if (!append) { page.value = 1; activities.value = [] }
+  loading.value = !append
   try {
-    const [daily, weekly, monthly] = await Promise.allSettled([
-      getDailyRanking({ category: 'hot', limit: 10 }),
-      getWeeklyRanking({ category: 'hot', limit: 10 }),
-      getMonthlyRanking({ category: 'hot', limit: 10 }),
-    ])
-    rankData.value.daily = daily.status === 'fulfilled' ? (daily.value || []) : []
-    rankData.value.weekly = weekly.status === 'fulfilled' ? (weekly.value || []) : []
-    rankData.value.monthly = monthly.status === 'fulfilled' ? (monthly.value || []) : []
-    currentRankList.value = rankData.value.daily
+    const data = await getActivities({
+      page: page.value, size: 12,
+      category: currentCat.value === 'all' ? '' : currentCat.value,
+      keyword: keyword.value,
+    })
+    const records = data?.records || []
+    if (append) activities.value.push(...records)
+    else activities.value = records
+    hasMore.value = activities.value.length < (data?.total || 0)
   } catch { /* ignore */ }
-  rankLoading.value = false
+  loading.value = false
 }
 
-function switchRankTab(key) {
-  activeRankTab.value = key
-  currentRankList.value = rankData.value[key] || []
-}
-
-// --- 各地区 ---
-const activeRegion = ref('CN')
-const regionDramas = ref([])
-const regionLoading = ref(true)
-
-async function switchRegion(code) {
-  activeRegion.value = code
-  regionLoading.value = true
-  try {
-    const data = await getDramasByRegion(code, 1, 10)
-    regionDramas.value = data?.list || data || []
-  } catch { regionDramas.value = [] }
-  regionLoading.value = false
-}
-
-onMounted(() => {
-  loadToday()
-  loadRanking()
-  switchRegion('CN')
-})
+onMounted(() => loadActivities())
 </script>
 
 <style scoped>
-.hero {
-  position: relative;
-  height: 340px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
+.home-page { max-width: 800px; margin: 0 auto; padding: 20px; }
+.hero { text-align: center; padding: 40px 0 20px; }
+.hero h1 { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #6366f1, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.hero p { color: var(--text-secondary); margin-top: 8px; }
+.hero-actions { display: flex; gap: 12px; justify-content: center; margin-top: 20px; max-width: 500px; margin-left: auto; margin-right: auto; }
+.search-box { flex: 1; }
+.publish-btn { padding: 8px 20px; border-radius: 8px; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; font-weight: 600; font-size: 14px; white-space: nowrap; text-decoration: none; display: flex; align-items: center; }
+.publish-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99,102,241,0.4); }
 
-.hero-bg {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 50%, #1e293b 100%);
-}
+.categories { display: flex; gap: 8px; flex-wrap: wrap; margin: 20px 0; justify-content: center; }
+.cat-tag { padding: 6px 14px; border-radius: 20px; background: var(--bg-card); color: var(--text-secondary); cursor: pointer; font-size: 13px; transition: all 0.2s; border: 1px solid transparent; }
+.cat-tag:hover, .cat-tag.active { background: rgba(99,102,241,0.15); color: #6366f1; border-color: rgba(99,102,241,0.3); }
 
-.hero-bg::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 600px 300px at 20% 50%, rgba(99, 102, 241, 0.15), transparent),
-    radial-gradient(ellipse 500px 250px at 80% 40%, rgba(168, 85, 247, 0.1), transparent);
-}
-
-.hero-content {
-  position: relative;
-  text-align: center;
-  z-index: 1;
-}
-
-.hero-title {
-  font-size: 42px;
-  font-weight: 800;
-  margin-bottom: 12px;
-}
-
-.gradient-text {
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.hero-desc {
-  font-size: 16px;
-  color: var(--text-secondary);
-  margin-bottom: 28px;
-}
-
-.hero-regions {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.hero-region-btn {
-  padding: 8px 20px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: var(--text-secondary);
-  font-size: 14px;
-  transition: all 0.25s;
-  cursor: pointer;
-}
-
-.hero-region-btn:hover {
-  background: rgba(99, 102, 241, 0.15);
-  border-color: var(--primary);
-  color: var(--primary-light);
-  transform: translateY(-2px);
-}
-
-.section {
-  margin-bottom: 48px;
-}
-
-.drama-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-  gap: 16px;
-}
-
-.loading-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-  gap: 16px;
-}
-
-.skeleton-card {
-  border-radius: var(--radius-md);
-  overflow: hidden;
-}
-
-/* 排行榜面板 */
-.ranking-panel {
-  background: var(--bg-card);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
-
-.ranking-tabs {
-  display: flex;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.rank-tab {
-  flex: 1;
-  padding: 14px;
-  text-align: center;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  background: none;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s;
-  border-bottom: 2px solid transparent;
-}
-
-.rank-tab:hover { color: var(--text-primary); }
-.rank-tab.active {
-  color: var(--primary-light);
-  border-bottom-color: var(--primary);
-}
-
-/* 地区选项卡 */
-.region-tabs {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-}
-
-.region-tab {
-  padding: 8px 18px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.region-tab:hover {
-  color: var(--text-primary);
-  border-color: var(--primary);
-}
-
-.region-tab.active {
-  color: white;
-  background: var(--gradient-primary);
-  border-color: transparent;
-}
+.activity-card { background: var(--bg-card); border-radius: 12px; padding: 20px; margin-bottom: 16px; cursor: pointer; transition: all 0.2s; border: 1px solid rgba(255,255,255,0.06); }
+.activity-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.author-info { display: flex; gap: 10px; align-items: center; }
+.author-name { font-weight: 600; font-size: 14px; }
+.author-sub { font-size: 12px; color: var(--text-muted); }
+.card-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+.card-desc { color: var(--text-secondary); font-size: 14px; line-height: 1.6; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.card-meta { display: flex; gap: 12px; flex-wrap: wrap; font-size: 13px; color: var(--text-muted); }
+.card-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.loading-tip, .empty-tip { text-align: center; padding: 40px; color: var(--text-muted); }
+.load-more { text-align: center; padding: 16px; }
 </style>

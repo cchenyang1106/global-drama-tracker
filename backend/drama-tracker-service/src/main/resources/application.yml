@@ -74,20 +74,8 @@ jwt:
 
 # 自定义配置
 app:
-  name: Global Drama Tracker
-  version: 1.0.0
+  name: BuddyFinder
+  version: 2.0.0
   admin:
     username: admin
     password: drama2026
-
-# TMDB API 配置 (The Movie Database - 免费开放影视数据库)
-# 申请地址: https://www.themoviedb.org/settings/api
-tmdb:
-  api-key: ${TMDB_API_KEY:}
-  base-url: https://api.themoviedb.org/3
-  image-base-url: https://image.tmdb.org/t/p
-  language: zh-CN
-  # 是否启用自动抓取 (需要配置 api-key 后设为 true)
-  auto-fetch-enabled: false
-  # 每次抓取页数 (每页20条)
-  fetch-pages: 3

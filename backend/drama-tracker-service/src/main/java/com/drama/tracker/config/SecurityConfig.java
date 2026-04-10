@@ -30,14 +30,12 @@ public class SecurityConfig {
      */
     private static final String[] WHITE_LIST = {
             "/api/auth/**",
-            "/api/drama/**",
-            "/api/ranking/**",
-            "/api/data/**",
+            "/api/activity/list",
+            "/api/activity/{id}",
+            "/api/profile/user/**",
             "/api/admin/login",
             "/api/admin/verify",
             "/api/analytics/**",
-            "/api/comment/**",
-            "/api/discussion/list/**",
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/v3/api-docs/**",

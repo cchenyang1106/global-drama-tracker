@@ -11,14 +11,6 @@
 
       <nav class="sidebar-nav">
         <router-link to="/admin" class="sidebar-link" exact-active-class="active">
-          <span class="link-icon">📊</span>
-          <span>数据管理</span>
-        </router-link>
-        <router-link to="/admin/comments" class="sidebar-link" active-class="active">
-          <span class="link-icon">💬</span>
-          <span>评论管理</span>
-        </router-link>
-        <router-link to="/admin/analytics" class="sidebar-link" active-class="active">
           <span class="link-icon">📈</span>
           <span>数据统计</span>
         </router-link>
