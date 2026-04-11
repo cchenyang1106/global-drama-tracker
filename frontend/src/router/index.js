@@ -16,6 +16,7 @@ const routes = [
     component: () => import('@/layouts/AdminLayout.vue'),
     children: [
       { path: '', name: 'AdminAnalytics', component: () => import('@/views/AdminAnalytics.vue'), meta: { title: '数据统计', layout: 'admin', requiresAuth: true } },
+      { path: 'content', name: 'AdminContent', component: () => import('@/views/AdminContent.vue'), meta: { title: '内容管理', layout: 'admin', requiresAuth: true } },
     ],
   },
 ]

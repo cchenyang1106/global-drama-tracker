@@ -14,6 +14,10 @@
           <span class="link-icon">📈</span>
           <span>数据统计</span>
         </router-link>
+        <router-link to="/admin/content" class="sidebar-link" active-class="active">
+          <span class="link-icon">📋</span>
+          <span>内容管理</span>
+        </router-link>
       </nav>
 
       <div class="sidebar-footer">
