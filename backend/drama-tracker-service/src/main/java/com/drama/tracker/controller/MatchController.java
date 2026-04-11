@@ -3,6 +3,7 @@ package com.drama.tracker.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.drama.tracker.common.result.Result;
+import com.drama.tracker.common.util.AesUtil;
 import com.drama.tracker.dao.entity.*;
 import com.drama.tracker.dao.mapper.*;
 import io.jsonwebtoken.Jwts;
@@ -31,6 +32,9 @@ public class MatchController {
 
     @Value("${jwt.secret:drama-tracker-jwt-secret}")
     private String jwtSecret;
+
+    @Value("${app.chat-secret:buddy-finder-chat-aes256-secret}")
+    private String chatSecret;
 
     private Long getUserIdFromToken(String auth) {
         if (auth == null || !auth.startsWith("Bearer ")) return null;
@@ -153,7 +157,7 @@ public class MatchController {
             msg.setMatchId(mr.getId());
             msg.setSenderId(userId);
             msg.setReceiverId(mr.getFromUserId());
-            msg.setContent("匹配成功！你们可以开始聊天了 🎉");
+            msg.setContent(AesUtil.encrypt("匹配成功！你们可以开始聊天了 🎉", chatSecret));
             msg.setMsgType(0);
             msg.setIsRead(0);
             chatMapper.insert(msg);
@@ -193,7 +197,7 @@ public class MatchController {
                     .eq(ChatMessage::getMatchId, mr.getId())
                     .orderByDesc(ChatMessage::getCreateTime).last("LIMIT 1"));
             if (lastMsg != null) {
-                item.put("lastMessage", lastMsg.getContent());
+                item.put("lastMessage", AesUtil.decrypt(lastMsg.getContent(), chatSecret));
                 item.put("lastTime", lastMsg.getCreateTime());
             }
 
@@ -231,7 +235,7 @@ public class MatchController {
         msg.setMatchId(matchId);
         msg.setSenderId(userId);
         msg.setReceiverId(receiverId);
-        msg.setContent((String) body.get("content"));
+        msg.setContent(AesUtil.encrypt((String) body.get("content"), chatSecret));
         msg.setMsgType(body.get("msgType") != null ? Integer.parseInt(body.get("msgType").toString()) : 0);
         msg.setIsRead(0);
         chatMapper.insert(msg);
@@ -276,7 +280,7 @@ public class MatchController {
             item.put("id", m.getId());
             item.put("senderId", m.getSenderId());
             item.put("receiverId", m.getReceiverId());
-            item.put("content", m.getContent());
+            item.put("content", AesUtil.decrypt(m.getContent(), chatSecret));
             item.put("msgType", m.getMsgType());
             item.put("isRead", m.getIsRead());
             item.put("createTime", m.getCreateTime());
