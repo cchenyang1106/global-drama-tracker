@@ -44,8 +44,13 @@ let pollTimer = null
 
 function formatTime(t) {
   if (!t) return ''
-  const d = new Date(t)
-  return d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+  // 后端返回的是本地时间（无时区标记），直接替换T为空格解析
+  const d = new Date(t.replace('T', ' ').replace(/-/g, '/'))
+  if (isNaN(d.getTime())) return ''
+  const now = new Date()
+  const isToday = d.toDateString() === now.toDateString()
+  const time = d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+  return isToday ? time : d.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }) + ' ' + time
 }
 
 function scrollToBottom() {

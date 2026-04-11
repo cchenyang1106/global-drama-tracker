@@ -23,6 +23,7 @@
           </router-link>
           <router-link to="/messages" class="nav-link" active-class="active" v-if="userStore.isLoggedIn">
             💬 消息
+            <span v-if="unreadCount > 0" class="unread-dot">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
           </router-link>
           <router-link to="/profile" class="nav-link" active-class="active" v-if="userStore.isLoggedIn">
             👤 我的
@@ -69,13 +70,16 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { getChatList } from '@/api/match'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+const unreadCount = ref(0)
+let unreadTimer = null
 
 const isAdminLayout = computed(() => {
   return route.matched.some(record => record.meta.layout === 'admin')
@@ -86,9 +90,21 @@ function handleLogout() {
   router.push('/')
 }
 
+async function checkUnread() {
+  if (!userStore.isLoggedIn) return
+  try {
+    const chats = await getChatList()
+    unreadCount.value = (chats || []).reduce((sum, c) => sum + (c.unreadCount || 0), 0)
+  } catch { /* ignore */ }
+}
+
 onMounted(() => {
   userStore.init()
+  checkUnread()
+  unreadTimer = setInterval(checkUnread, 15000)
 })
+
+onUnmounted(() => { if (unreadTimer) clearInterval(unreadTimer) })
 </script>
 
 <style scoped>
@@ -148,6 +164,22 @@ onMounted(() => {
   font-size: 14px;
   color: var(--text-secondary);
   transition: all 0.2s;
+  position: relative;
+}
+
+.unread-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background: #f43f5e;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .nav-link:hover {

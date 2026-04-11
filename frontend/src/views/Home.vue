@@ -3,11 +3,13 @@
     <section class="hero">
       <h1>找搭子，一起玩 🎯</h1>
       <p>发布你的活动需求，匹配志同道合的伙伴</p>
-      <div class="hero-actions">
+      <div class="search-row">
         <el-input v-model="keyword" placeholder="搜索活动..." :prefix-icon="Search" clearable
           @keyup.enter="loadActivities()" @clear="loadActivities()" class="search-box" />
         <el-button type="primary" @click="loadActivities()" round>搜索</el-button>
-        <router-link to="/publish" class="publish-btn" v-if="userStore.isLoggedIn">发布活动</router-link>
+      </div>
+      <div class="publish-row">
+        <router-link to="/publish" class="publish-btn" v-if="userStore.isLoggedIn">✏️ 发布活动</router-link>
         <router-link to="/login" class="publish-btn" v-else>登录后发布</router-link>
       </div>
     </section>
@@ -111,9 +113,10 @@ onMounted(() => loadActivities())
 .hero { text-align: center; padding: 40px 0 20px; }
 .hero h1 { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #f472b6, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 .hero p { color: var(--text-secondary); margin-top: 8px; }
-.hero-actions { display: flex; gap: 12px; justify-content: center; margin-top: 20px; max-width: 500px; margin-left: auto; margin-right: auto; }
+.search-row { display: flex; gap: 10px; justify-content: center; margin-top: 20px; max-width: 500px; margin-left: auto; margin-right: auto; }
 .search-box { flex: 1; }
-.publish-btn { padding: 8px 20px; border-radius: 20px; background: linear-gradient(135deg, #f472b6, #c084fc); color: white; font-weight: 600; font-size: 14px; white-space: nowrap; text-decoration: none; display: flex; align-items: center; }
+.publish-row { text-align: center; margin-top: 14px; }
+.publish-btn { display: inline-block; padding: 10px 28px; border-radius: 20px; background: linear-gradient(135deg, #f472b6, #c084fc); color: white; font-weight: 600; font-size: 14px; text-decoration: none; transition: all 0.2s; }
 .publish-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(244,114,182,0.4); }
 
 .categories { display: flex; gap: 8px; flex-wrap: wrap; margin: 20px 0; justify-content: center; }

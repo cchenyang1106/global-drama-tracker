@@ -77,7 +77,8 @@ const sent = ref([])
 
 function formatTime(t) {
   if (!t) return ''
-  const d = new Date(t)
+  const d = new Date(t.replace('T', ' ').replace(/-/g, '/'))
+  if (isNaN(d.getTime())) return ''
   const now = new Date()
   if (d.toDateString() === now.toDateString()) return d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
   return d.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })
