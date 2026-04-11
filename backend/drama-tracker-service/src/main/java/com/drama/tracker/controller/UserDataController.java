@@ -124,7 +124,7 @@ public class UserDataController {
         if (user == null) return Result.fail("用户不存在");
 
         // 逻辑删除用户
-        user.setDeleted(1);
+        user.setDeleted(true);
         user.setStatus(0);
         user.setNickname("已注销用户");
         user.setUsername("deleted_" + userId); // 释放手机号
