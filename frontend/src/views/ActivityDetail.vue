@@ -57,8 +57,15 @@
     <div v-else-if="isOwner" class="apply-section owner-tip">
       这是你发布的活动
     </div>
-    <div v-else-if="applied" class="apply-section owner-tip">
-      ✅ 已申请，等待对方确认
+    <div v-else-if="applyStatus === 0" class="apply-section owner-tip">
+      ⏳ 已申请，等待对方确认
+    </div>
+    <div v-else-if="applyStatus === 1" class="apply-section match-success">
+      🎉 匹配成功！
+      <router-link :to="`/chat/${matchId}`" class="chat-link">去聊天 →</router-link>
+    </div>
+    <div v-else-if="applyStatus === 2" class="apply-section owner-tip" style="color:#e11d48">
+      ❌ 申请已被拒绝
     </div>
 
     <!-- 评论区 -->
@@ -130,7 +137,8 @@ const userStore = useUserStore()
 const activity = ref(null)
 const applyMsg = ref('')
 const applying = ref(false)
-const applied = ref(false)
+const applyStatus = ref(-1)  // -1未申请 0待处理 1已同意 2已拒绝
+const matchId = ref(null)
 const showReport = ref(false)
 const reportTarget = ref({ type: 'activity', id: 0 })
 
@@ -145,7 +153,7 @@ const replyTo = ref(null)
 
 const isOwner = computed(() => activity.value && userStore.userId && activity.value.userId === userStore.userId)
 const canApply = computed(() => {
-  return userStore.isLoggedIn && !isOwner.value && !applied.value && activity.value?.status === 1
+  return userStore.isLoggedIn && !isOwner.value && applyStatus.value === -1 && activity.value?.status === 1
 })
 
 function catColor(cat) {
@@ -166,7 +174,7 @@ async function doApply() {
   try {
     await applyActivity({ activityId: activity.value.id, message: applyMsg.value })
     ElMessage.success('申请已发送！')
-    applied.value = true
+    applyStatus.value = 0
   } catch (e) { ElMessage.error(e?.message || '申请失败') }
   applying.value = false
 }
@@ -228,7 +236,11 @@ onMounted(async () => {
   if (userStore.isLoggedIn) {
     try {
       const sent = await getSentRequests()
-      applied.value = (sent || []).some(r => r.activityId === activity.value?.id)
+      const myReq = (sent || []).find(r => r.activityId == activity.value?.id)
+      if (myReq) {
+        applyStatus.value = myReq.status
+        matchId.value = myReq.id
+      }
     } catch { /* ignore */ }
   }
 })
@@ -253,6 +265,9 @@ onMounted(async () => {
 .apply-section h3 { font-size: 16px; margin-bottom: 12px; }
 .login-tip { display: block; text-align: center; padding: 12px; background: linear-gradient(135deg,#f472b6,#c084fc); color: white; border-radius: 8px; font-weight: 600; }
 .owner-tip { text-align: center; color: var(--text-muted); }
+.match-success { text-align: center; color: #059669; font-weight: 600; font-size: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.chat-link { display: inline-block; padding: 8px 24px; border-radius: 20px; background: linear-gradient(135deg, #f472b6, #c084fc); color: white; font-size: 14px; font-weight: 600; text-decoration: none; }
+.chat-link:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(244,114,182,0.4); }
 .loading-page { text-align: center; padding: 60px; color: var(--text-muted); }
 
 /* 评论区 */
