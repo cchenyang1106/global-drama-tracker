@@ -3,6 +3,7 @@ package com.drama.tracker.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.drama.tracker.common.result.Result;
+import com.drama.tracker.common.util.SensitiveWordFilter;
 import com.drama.tracker.dao.entity.Activity;
 import com.drama.tracker.dao.entity.User;
 import com.drama.tracker.dao.entity.UserProfile;
@@ -127,9 +128,16 @@ public class ActivityController {
         Long userId = getUserIdFromToken(auth);
         if (userId == null) return Result.fail(401, "请先登录");
 
+        // 敏感词检查
+        String title = (String) body.get("title");
+        String desc = (String) body.get("description");
+        String badWord = SensitiveWordFilter.detect(title);
+        if (badWord == null) badWord = SensitiveWordFilter.detect(desc);
+        if (badWord != null) return Result.fail("内容包含违规词汇「" + badWord + "」，请修改后重试");
+
         Activity a = new Activity();
         a.setUserId(userId);
-        a.setTitle((String) body.get("title"));
+        a.setTitle(title);
         a.setCategory((String) body.getOrDefault("category", "其他"));
         a.setDescription((String) body.get("description"));
         a.setLocation((String) body.get("location"));

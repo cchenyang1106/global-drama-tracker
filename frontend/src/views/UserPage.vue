@@ -1,6 +1,10 @@
 <template>
   <div class="user-page" v-if="profile">
-    <el-button text @click="$router.back()" style="margin-bottom:12px">← 返回</el-button>
+    <div class="top-bar">
+      <el-button text @click="$router.back()">← 返回</el-button>
+      <el-button v-if="isLoggedIn" text type="danger" size="small"
+        @click="showReport = true">🚩 举报用户</el-button>
+    </div>
     <div class="user-card">
       <div class="user-top">
         <el-avatar :size="72" :src="profile.avatarUrl" style="background:#f472b6;font-size:28px">
@@ -32,18 +36,23 @@
         </div>
       </div>
     </div>
+
+    <ReportDialog v-model="showReport" target-type="user" :target-id="route.params.userId" />
   </div>
   <div v-else class="loading-page">加载中...</div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { getUserProfile } from '@/api/profile'
+import ReportDialog from '@/components/ReportDialog.vue'
 
 const route = useRoute()
 const profile = ref(null)
 const photos = ref([])
+const showReport = ref(false)
+const isLoggedIn = computed(() => !!localStorage.getItem('token'))
 
 onMounted(async () => {
   try {
@@ -57,6 +66,7 @@ onMounted(async () => {
 
 <style scoped>
 .user-page { max-width: 600px; margin: 0 auto; padding: 20px; }
+.top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .user-card { background: var(--bg-card); border-radius: 12px; padding: 24px; }
 .user-top { display: flex; gap: 16px; align-items: center; margin-bottom: 20px; }
 .user-top h2 { font-size: 20px; font-weight: 800; }

@@ -26,6 +26,11 @@
         <el-button type="primary" size="large" :loading="loading" @click="handleSubmit" style="width:100%">
           {{ isRegister ? '注 册' : '登 录' }}
         </el-button>
+
+        <div v-if="isRegister" class="privacy-agree">
+          <el-checkbox v-model="agreePrivacy" size="small" />
+          <span>我已阅读并同意 <router-link to="/privacy" target="_blank">《隐私政策》</router-link></span>
+        </div>
       </el-form>
 
       <div class="switch-mode">
@@ -54,6 +59,7 @@ const route = useRoute()
 const userStore = useUserStore()
 const loading = ref(false)
 const isRegister = ref(false)
+const agreePrivacy = ref(false)
 const form = reactive({ phone: '', password: '', nickname: '' })
 
 async function handleSubmit() {
@@ -63,6 +69,10 @@ async function handleSubmit() {
   }
   if (!form.password || form.password.length < 6) {
     ElMessage.warning('密码至少6位')
+    return
+  }
+  if (isRegister.value && !agreePrivacy.value) {
+    ElMessage.warning('请先阅读并同意隐私政策')
     return
   }
 
@@ -110,4 +120,6 @@ async function handleSubmit() {
 .switch-mode a:hover { text-decoration: underline; }
 .back-link { display: inline-block; margin-top: 8px; color: var(--text-muted); font-size: 13px; }
 .back-link:hover { color: var(--primary-light); }
+.privacy-agree { display: flex; align-items: center; gap: 4px; margin-top: 12px; font-size: 12px; color: var(--text-muted); justify-content: center; }
+.privacy-agree a { color: var(--primary); }
 </style>

@@ -23,6 +23,7 @@ public class AdminContentController {
     private final UserMapper userMapper;
     private final UserProfileMapper profileMapper;
     private final ActivityCommentMapper commentMapper;
+    private final UserReportMapper reportMapper;
 
     /**
      * 活动列表（管理端）。
@@ -192,6 +193,7 @@ public class AdminContentController {
         return Result.success("已删除");
     }
 
+
     /**
      * 隐藏/显示评论。
      */
@@ -203,5 +205,56 @@ public class AdminContentController {
         c.setHidden(c.getHidden() == 1 ? 0 : 1);
         commentMapper.updateById(c);
         return Result.success(c.getHidden() == 1 ? "已隐藏" : "已显示");
+    }
+
+    /**
+     * 获取举报列表。
+     */
+    @Operation(summary = "举报列表")
+    @GetMapping("/reports")
+    public Result<?> reports(@RequestParam(defaultValue = "1") Integer page,
+                             @RequestParam(defaultValue = "20") Integer size,
+                             @RequestParam(required = false) Integer status) {
+        LambdaQueryWrapper<UserReport> qw = new LambdaQueryWrapper<>();
+        if (status != null) qw.eq(UserReport::getStatus, status);
+        qw.orderByDesc(UserReport::getCreateTime);
+        Page<UserReport> p = reportMapper.selectPage(new Page<>(page, size), qw);
+
+        List<Map<String, Object>> records = new ArrayList<>();
+        for (UserReport r : p.getRecords()) {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("id", r.getId());
+            item.put("reporterId", r.getReporterId());
+            User reporter = userMapper.selectById(r.getReporterId());
+            item.put("reporterName", reporter != null ? reporter.getNickname() : "未知");
+            item.put("targetType", r.getTargetType());
+            item.put("targetId", r.getTargetId());
+            item.put("reason", r.getReason());
+            item.put("detail", r.getDetail());
+            item.put("status", r.getStatus());
+            item.put("adminNote", r.getAdminNote());
+            item.put("createTime", r.getCreateTime());
+            records.add(item);
+        }
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("records", records);
+        result.put("total", p.getTotal());
+        return Result.success(result);
+    }
+
+    /**
+     * 处理举报。
+     */
+    @Operation(summary = "处理举报")
+    @PostMapping("/reports/{id}/handle")
+    public Result<String> handleReport(@PathVariable Long id, @RequestBody Map<String, Object> body) {
+        UserReport r = reportMapper.selectById(id);
+        if (r == null) return Result.fail(404, "举报不存在");
+        Integer newStatus = Integer.valueOf(body.get("status").toString()); // 1已处理 2已驳回
+        String note = (String) body.getOrDefault("adminNote", "");
+        r.setStatus(newStatus);
+        r.setAdminNote(note);
+        reportMapper.updateById(r);
+        return Result.success(newStatus == 1 ? "已处理" : "已驳回");
     }
 }

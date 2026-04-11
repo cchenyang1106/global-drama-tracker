@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.drama.tracker.common.result.Result;
 import com.drama.tracker.common.util.AesUtil;
+import com.drama.tracker.common.util.SensitiveWordFilter;
 import com.drama.tracker.dao.entity.*;
 import com.drama.tracker.dao.mapper.*;
 import io.jsonwebtoken.Jwts;
@@ -231,11 +232,13 @@ public class MatchController {
 
         Long receiverId = mr.getFromUserId().equals(userId) ? mr.getToUserId() : mr.getFromUserId();
 
+        String content = SensitiveWordFilter.filter((String) body.get("content"));
+
         ChatMessage msg = new ChatMessage();
         msg.setMatchId(matchId);
         msg.setSenderId(userId);
         msg.setReceiverId(receiverId);
-        msg.setContent(AesUtil.encrypt((String) body.get("content"), chatSecret));
+        msg.setContent(AesUtil.encrypt(content, chatSecret));
         msg.setMsgType(body.get("msgType") != null ? Integer.parseInt(body.get("msgType").toString()) : 0);
         msg.setIsRead(0);
         chatMapper.insert(msg);

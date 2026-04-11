@@ -2,6 +2,7 @@ package com.drama.tracker.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.drama.tracker.common.result.Result;
+import com.drama.tracker.common.util.PhoneUtil;
 import com.drama.tracker.dao.entity.User;
 import com.drama.tracker.dao.mapper.UserMapper;
 import io.jsonwebtoken.Jwts;
@@ -116,7 +117,7 @@ public class UserAuthController {
 
             Map<String, Object> info = new LinkedHashMap<>();
             info.put("id", user.getId());
-            info.put("phone", user.getUsername());
+            info.put("phone", PhoneUtil.mask(user.getUsername()));
             info.put("nickname", user.getNickname());
             info.put("avatarUrl", user.getAvatarUrl());
             return Result.success(info);
@@ -139,7 +140,7 @@ public class UserAuthController {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("token", token);
         result.put("id", user.getId());
-        result.put("phone", user.getUsername());
+        result.put("phone", PhoneUtil.mask(user.getUsername()));
         result.put("nickname", user.getNickname());
         return result;
     }

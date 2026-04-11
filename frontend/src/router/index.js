@@ -9,6 +9,8 @@ const routes = [
   { path: '/profile', name: 'Profile', component: () => import('@/views/Profile.vue'), meta: { title: '个人资料', requiresLogin: true } },
   { path: '/user/:userId', name: 'UserPage', component: () => import('@/views/UserPage.vue'), meta: { title: '用户资料' } },
   { path: '/login', name: 'Login', component: () => import('@/views/Login.vue'), meta: { title: '登录' } },
+  { path: '/privacy', name: 'Privacy', component: () => import('@/views/Privacy.vue'), meta: { title: '隐私政策' } },
+  { path: '/my-data', name: 'MyData', component: () => import('@/views/MyData.vue'), meta: { title: '我的数据', requiresLogin: true } },
   // 管理端
   { path: '/admin/login', name: 'AdminLogin', component: () => import('@/views/AdminLogin.vue'), meta: { title: '管理端登录' } },
   {

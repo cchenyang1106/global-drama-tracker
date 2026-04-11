@@ -2,6 +2,8 @@
   <div class="detail-page" v-if="activity">
     <div class="back-bar">
       <el-button text @click="$router.back()">← 返回</el-button>
+      <el-button v-if="userStore.isLoggedIn && !isOwner" text type="danger" size="small"
+        @click="reportTarget = { type: 'activity', id: activity.id }; showReport = true">🚩 举报</el-button>
     </div>
 
     <div class="detail-card">
@@ -109,6 +111,8 @@
     </div>
   </div>
   <div v-else class="loading-page">加载中...</div>
+
+  <ReportDialog v-model="showReport" :target-type="reportTarget.type" :target-id="reportTarget.id" />
 </template>
 
 <script setup>
@@ -119,6 +123,7 @@ import { getActivityDetail } from '@/api/activity'
 import { applyActivity, getSentRequests } from '@/api/match'
 import { getComments, addComment, pinComment, hideComment, deleteComment } from '@/api/activityComment'
 import { useUserStore } from '@/stores/user'
+import ReportDialog from '@/components/ReportDialog.vue'
 
 const route = useRoute()
 const userStore = useUserStore()
@@ -126,6 +131,8 @@ const activity = ref(null)
 const applyMsg = ref('')
 const applying = ref(false)
 const applied = ref(false)
+const showReport = ref(false)
+const reportTarget = ref({ type: 'activity', id: 0 })
 
 // 评论
 const comments = ref([])
@@ -229,7 +236,7 @@ onMounted(async () => {
 
 <style scoped>
 .detail-page { max-width: 700px; margin: 0 auto; padding: 20px; }
-.back-bar { margin-bottom: 16px; }
+.back-bar { margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
 .detail-card { background: var(--bg-card); border-radius: 12px; padding: 24px; }
 .detail-header { display: flex; gap: 8px; margin-bottom: 12px; }
 .detail-title { font-size: 22px; font-weight: 800; margin-bottom: 16px; }

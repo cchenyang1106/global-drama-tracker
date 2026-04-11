@@ -3,6 +3,7 @@ package com.drama.tracker.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.drama.tracker.common.result.Result;
+import com.drama.tracker.common.util.SensitiveWordFilter;
 import com.drama.tracker.dao.entity.Activity;
 import com.drama.tracker.dao.entity.ActivityComment;
 import com.drama.tracker.dao.entity.User;
@@ -92,10 +93,14 @@ public class ActivityCommentController {
         Long userId = getUserIdFromToken(auth);
         if (userId == null) return Result.fail(401, "请先登录");
 
+        String content = (String) body.get("content");
+        String badWord = SensitiveWordFilter.detect(content);
+        if (badWord != null) return Result.fail("评论包含违规词汇「" + badWord + "」，请修改");
+
         ActivityComment c = new ActivityComment();
         c.setActivityId(Long.valueOf(body.get("activityId").toString()));
         c.setUserId(userId);
-        c.setContent((String) body.get("content"));
+        c.setContent(content);
         if (body.get("parentId") != null) {
             c.setParentId(Long.valueOf(body.get("parentId").toString()));
         }

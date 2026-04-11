@@ -62,6 +62,11 @@
         </el-button>
       </el-form-item>
     </el-form>
+
+    <div class="profile-links">
+      <router-link to="/my-data">📦 我的数据（导出/注销）</router-link>
+      <router-link to="/privacy">🔒 隐私政策</router-link>
+    </div>
   </div>
 </template>
 
@@ -224,4 +229,7 @@ onMounted(load)
 .photo-add:hover { border-color: var(--primary); color: var(--primary); }
 .photo-add span { font-size: 28px; line-height: 1; }
 .photo-add small { font-size: 12px; margin-top: 4px; }
+.profile-links { display: flex; justify-content: center; gap: 24px; margin-top: 20px; font-size: 13px; }
+.profile-links a { color: var(--text-muted); transition: color 0.2s; }
+.profile-links a:hover { color: var(--primary); }
 </style>

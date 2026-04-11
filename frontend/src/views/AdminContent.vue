@@ -97,6 +97,45 @@
         <el-pagination v-if="commentTotal > 20" layout="prev, pager, next" :total="commentTotal" :page-size="20"
           v-model:current-page="commentPage" @current-change="loadComments" style="margin-top:16px" />
       </el-tab-pane>
+
+      <!-- 举报管理 -->
+      <el-tab-pane label="举报管理" name="reports">
+        <div class="toolbar">
+          <el-select v-model="reportStatus" placeholder="筛选状态" clearable style="width:140px" @change="loadReports">
+            <el-option label="待处理" :value="0" />
+            <el-option label="已处理" :value="1" />
+            <el-option label="已驳回" :value="2" />
+          </el-select>
+          <span class="total-text">共 {{ reportTotal }} 条举报</span>
+        </div>
+        <el-table :data="reports" stripe style="width:100%">
+          <el-table-column prop="id" label="ID" width="60" />
+          <el-table-column prop="reporterName" label="举报人" width="100" />
+          <el-table-column prop="targetType" label="类型" width="80" />
+          <el-table-column prop="targetId" label="对象ID" width="80" />
+          <el-table-column prop="reason" label="原因" width="100" />
+          <el-table-column prop="detail" label="详情" min-width="150" show-overflow-tooltip />
+          <el-table-column prop="status" label="状态" width="80">
+            <template #default="{ row }">
+              <el-tag v-if="row.status === 0" type="warning" size="small">待处理</el-tag>
+              <el-tag v-else-if="row.status === 1" type="success" size="small">已处理</el-tag>
+              <el-tag v-else type="info" size="small">已驳回</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="createTime" label="时间" width="160" />
+          <el-table-column label="操作" width="150">
+            <template #default="{ row }">
+              <template v-if="row.status === 0">
+                <el-button text size="small" type="success" @click="handleReport(row.id, 1)">处理</el-button>
+                <el-button text size="small" type="info" @click="handleReport(row.id, 2)">驳回</el-button>
+              </template>
+              <span v-else class="handled-text">{{ row.adminNote || '-' }}</span>
+            </template>
+          </el-table-column>
+        </el-table>
+        <el-pagination v-if="reportTotal > 20" layout="prev, pager, next" :total="reportTotal" :page-size="20"
+          v-model:current-page="reportPage" @current-change="loadReports" style="margin-top:16px" />
+      </el-tab-pane>
     </el-tabs>
   </div>
 </template>
@@ -190,14 +229,37 @@ async function deleteComment(id) {
 function onTabChange(tab) {
   if (tab === 'activities') loadActivities()
   else if (tab === 'users') loadUsers()
+  else if (tab === 'reports') loadReports()
   else loadComments()
 }
 
-onMounted(() => { loadActivities(); loadUsers(); loadComments() })
+// 举报
+const reports = ref([])
+const reportTotal = ref(0)
+const reportPage = ref(1)
+const reportStatus = ref(null)
+
+async function loadReports() {
+  const params = { page: reportPage.value, size: 20 }
+  if (reportStatus.value !== null) params.status = reportStatus.value
+  const data = await request.get('/admin/content/reports', { params, headers: authHeader() })
+  reports.value = data?.records || []
+  reportTotal.value = data?.total || 0
+}
+
+async function handleReport(id, status) {
+  const note = status === 1 ? '已处理' : '已驳回'
+  await request.post(`/admin/content/reports/${id}/handle`, { status, adminNote: note }, { headers: authHeader() })
+  ElMessage.success(note)
+  loadReports()
+}
+
+onMounted(() => { loadActivities(); loadUsers(); loadComments(); loadReports() })
 </script>
 
 <style scoped>
 .admin-content-page { padding: 24px; }
 .toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; }
 .total-text { font-size: 13px; color: var(--text-muted); margin-left: auto; }
+.handled-text { font-size: 12px; color: var(--text-muted); }
 </style>
