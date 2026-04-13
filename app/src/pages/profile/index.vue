@@ -31,6 +31,10 @@
           <image v-for="(p, i) in photoList" :key="i" :src="p" style="width: 200rpx; height: 200rpx; border-radius: 12rpx;" mode="aspectFill" @tap="previewImage(i)" />
         </view>
       </view>
+      <view v-if="!profile.occupation && !profile.bio && !profile.hobbies && photoList.length === 0"
+        style="text-align:center;padding:40rpx 0;color:#b8929e;font-size:26rpx;">
+        TA 还没有完善更多资料~
+      </view>
     </view>
 
     <!-- 编辑自己资料 -->
@@ -165,6 +169,8 @@ onLoad(async (options) => {
     try {
       const data = await getUserProfile(viewUserId.value)
       profile.value = data || {}
+      // 修改导航栏标题为对方昵称
+      uni.setNavigationBarTitle({ title: data?.nickname || '个人资料' })
       if (data?.photos) {
         try { photoList.value = JSON.parse(data.photos) } catch {}
       }
