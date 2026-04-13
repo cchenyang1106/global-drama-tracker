@@ -1,44 +1,52 @@
 {
-    "name" : "Global Drama Tracker",
-    "appid" : "__UNI__DRAMA001",
-    "description" : "全球剧集追踪平台",
-    "versionName" : "1.0.0",
-    "versionCode" : 100,
-    "transformPx" : false,
-    "app-plus" : {
-        "usingComponents" : true,
-        "nvueStyleCompiler" : "uni-app",
-        "splashscreen" : {
-            "alwaysShowBeforeRender" : true,
-            "autoclose" : true,
-            "waiting" : true
-        },
-        "modules" : {},
-        "distribute" : {
-            "android" : {
-                "permissions" : [ "<uses-permission android:name=\"android.permission.INTERNET\"/>" ]
-            },
-            "ios" : {
-                "dSYMs" : false
-            }
-        }
+  "name": "找搭子",
+  "appid": "__UNI__DRAMA001",
+  "description": "找到志同道合的伙伴",
+  "versionName": "1.0.0",
+  "versionCode": 100,
+  "transformPx": false,
+  "app-plus": {
+    "usingComponents": true,
+    "nvueStyleCompiler": "uni-app",
+    "splashscreen": {
+      "alwaysShowBeforeRender": true,
+      "autoclose": true,
+      "waiting": true
     },
-    "quickapp" : {},
-    "mp-weixin" : {
-        "appid" : "",
-        "setting" : {
-            "urlCheck" : false
-        },
-        "usingComponents" : true
-    },
-    "h5" : {
-        "devServer" : {
-            "proxy" : {
-                "/api" : {
-                    "target" : "https://global-drama-tracker-production.up.railway.app",
-                    "changeOrigin" : true
-                }
-            }
-        }
+    "modules": {},
+    "distribute": {
+      "android": {
+        "permissions": [
+          "<uses-permission android:name=\"android.permission.INTERNET\"/>"
+        ]
+      },
+      "ios": {}
     }
+  },
+  "quickapp": {},
+  "mp-weixin": {
+    "appid": "YOUR_WEIXIN_APPID",
+    "setting": {
+      "urlCheck": false,
+      "es6": true,
+      "minified": true
+    },
+    "usingComponents": true,
+    "permission": {
+      "scope.userLocation": {
+        "desc": "用于展示附近活动"
+      }
+    },
+    "requiredPrivateInfos": []
+  },
+  "h5": {
+    "devServer": {
+      "proxy": {
+        "/api": {
+          "target": "https://global-drama-tracker-production.up.railway.app",
+          "changeOrigin": true
+        }
+      }
+    }
+  }
 }
