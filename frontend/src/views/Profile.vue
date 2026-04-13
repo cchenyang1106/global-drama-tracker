@@ -154,7 +154,6 @@ async function load() {
       form.occupation = data.occupation || ''
       form.bio = data.bio || ''
       form.hobbies = data.hobbies || ''
-      form.wechat = data.wechat || ''
       try { photoList.value = data.photos ? JSON.parse(data.photos) : [] } catch { photoList.value = [] }
     }
   } catch { /* ignore */ }

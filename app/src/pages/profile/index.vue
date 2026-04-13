@@ -65,11 +65,6 @@
       <view style="margin-bottom: 24rpx;"><text style="display: block; font-size: 28rpx; color: #7c5270; margin-bottom: 8rpx; font-weight: 600;">简介</text><textarea v-model="form.bio" placeholder="介绍一下自己..." maxlength="300" style="background: #fff5f7; border: 2rpx solid #fce4ec; border-radius: 12rpx; padding: 16rpx; color: #4a2040; font-size: 28rpx; width: 100%; min-height: 160rpx;" /></view>
       <view style="margin-bottom: 24rpx;"><text style="display: block; font-size: 28rpx; color: #7c5270; margin-bottom: 8rpx; font-weight: 600;">爱好（逗号分隔）</text><input v-model="form.hobbies" placeholder="旅游,摄影,健身" style="background: #fff5f7; border: 2rpx solid #fce4ec; border-radius: 12rpx; padding: 16rpx; color: #4a2040; font-size: 28rpx;" /></view>
       <view style="margin-bottom: 24rpx;"><text style="display: block; font-size: 28rpx; color: #7c5270; margin-bottom: 8rpx; font-weight: 600;">个人标签（方便被发现，逗号分隔）</text><input v-model="form.tags" placeholder="户外达人,吃货,夜跑,剧本杀" style="background: #fff5f7; border: 2rpx solid #fce4ec; border-radius: 12rpx; padding: 16rpx; color: #4a2040; font-size: 28rpx;" /></view>
-      <view style="margin-bottom: 24rpx;"><text style="display: block; font-size: 28rpx; color: #7c5270; margin-bottom: 8rpx; font-weight: 600;">微信号</text><input v-model="form.wechat" placeholder="微信号" style="background: #fff5f7; border: 2rpx solid #fce4ec; border-radius: 12rpx; padding: 16rpx; color: #4a2040; font-size: 28rpx;" /></view>
-      <view style="margin-bottom: 24rpx; display: flex; align-items: center; gap: 12rpx;">
-        <switch :checked="form.showWechat === 1" @change="form.showWechat = $event.detail.value ? 1 : 0" color="#f472b6" style="transform: scale(0.8);" />
-        <text style="font-size: 26rpx; color: #7c5270;">允许组队成功后对方查看微信号</text>
-      </view>
 
       <!-- 照片上传 -->
       <view style="margin-bottom: 24rpx;">

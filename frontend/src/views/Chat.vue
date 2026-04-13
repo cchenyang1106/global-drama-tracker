@@ -64,7 +64,6 @@ async function loadMessages() {
     const data = await getChatMessages(matchId)
     messages.value = data?.messages || []
     partnerName.value = data?.partnerName || ''
-    partnerWechat.value = data?.partnerWechat || ''
     activityTitle.value = data?.activityTitle || ''
     scrollToBottom()
   } catch { /* ignore */ }

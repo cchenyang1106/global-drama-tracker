@@ -23,7 +23,6 @@
       <text class="p">• 聊天加密：所有聊天消息使用 AES-256-GCM 加密后存储</text>
       <text class="p">• 传输加密：全站使用 HTTPS 加密传输</text>
       <text class="p">• 手机号脱敏：对外展示时隐藏中间四位（如 138****1234）</text>
-      <text class="p">• 微信号保护：仅组队成功后对双方可见</text>
       <text class="p">• API 限流：防止恶意刷接口和数据爬取</text>
       <text class="p">• 定期清理：聊天记录保留 30 天后自动删除</text>
 

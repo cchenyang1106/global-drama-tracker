@@ -64,7 +64,6 @@ async function load() {
   try {
     const data = await getChatMessages(matchId, 1, 100)
     messages.value = data?.messages || []
-    if (data?.partnerWechat) partnerWechat.value = data.partnerWechat
     if (data?.partnerName) uni.setNavigationBarTitle({ title: data.partnerName })
     scrollToBottom()
   } catch {}

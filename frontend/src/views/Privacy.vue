@@ -33,7 +33,6 @@
           <li><strong>聊天加密</strong>：所有聊天消息使用 AES-256-GCM 加密后存储</li>
           <li><strong>传输加密</strong>：全站使用 HTTPS 加密传输</li>
           <li><strong>手机号脱敏</strong>：对外展示时隐藏中间四位（如 138****1234）</li>
-          <li><strong>微信号保护</strong>：仅组队成功后对双方可见</li>
           <li><strong>API 限流</strong>：防止恶意刷接口和数据爬取</li>
           <li><strong>定期清理</strong>：聊天记录保留 30 天后自动删除</li>
         </ul>

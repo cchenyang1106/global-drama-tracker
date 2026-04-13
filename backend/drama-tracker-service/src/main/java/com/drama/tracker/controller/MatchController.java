@@ -304,15 +304,10 @@ public class MatchController {
         }
         Collections.reverse(messages);
 
-        // 获取对方信息 + 微信号（组队成功后可见）
+        // 获取对方信息
         Long otherUserId = mr.getFromUserId().equals(userId) ? mr.getToUserId() : mr.getFromUserId();
         Map<String, Object> partner = new LinkedHashMap<>();
         attachUserInfo(partner, "partner", otherUserId);
-        UserProfile otherProfile = profileMapper.selectOne(
-                new LambdaQueryWrapper<UserProfile>().eq(UserProfile::getUserId, otherUserId));
-        if (otherProfile != null && otherProfile.getShowWechat() != null && otherProfile.getShowWechat() == 1) {
-            partner.put("partnerWechat", otherProfile.getWechat());
-        }
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("messages", messages);
