@@ -5,9 +5,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.drama.tracker.common.result.Result;
 import com.drama.tracker.common.util.SensitiveWordFilter;
 import com.drama.tracker.dao.entity.Activity;
+import com.drama.tracker.dao.entity.ActivityQuiz;
 import com.drama.tracker.dao.entity.User;
 import com.drama.tracker.dao.entity.UserProfile;
 import com.drama.tracker.dao.mapper.ActivityMapper;
+import com.drama.tracker.dao.mapper.ActivityQuizMapper;
 import com.drama.tracker.dao.mapper.UserMapper;
 import com.drama.tracker.dao.mapper.UserProfileMapper;
 import io.jsonwebtoken.Jwts;
@@ -30,6 +32,7 @@ import java.util.*;
 public class ActivityController {
 
     private final ActivityMapper activityMapper;
+    private final ActivityQuizMapper quizMapper;
     private final UserMapper userMapper;
     private final UserProfileMapper profileMapper;
 
@@ -115,6 +118,10 @@ public class ActivityController {
             data.put("authorGender", profile.getGender());
             data.put("authorBio", profile.getBio());
         }
+        // 题目数量
+        Long quizCount = quizMapper.selectCount(new LambdaQueryWrapper<ActivityQuiz>()
+                .eq(ActivityQuiz::getActivityId, a.getId()));
+        data.put("quizCount", quizCount);
         return Result.success(data);
     }
 

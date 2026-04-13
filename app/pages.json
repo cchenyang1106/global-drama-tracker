@@ -9,7 +9,11 @@
     { "path": "pages/profile/index", "style": { "navigationBarTitleText": "编辑资料" } },
     { "path": "pages/login/index", "style": { "navigationBarTitleText": "登录" } },
     { "path": "pages/privacy/index", "style": { "navigationBarTitleText": "隐私政策" } },
-    { "path": "pages/my-data/index", "style": { "navigationBarTitleText": "我的数据" } }
+    { "path": "pages/my-data/index", "style": { "navigationBarTitleText": "我的数据" } },
+    { "path": "pages/quiz-edit/index", "style": { "navigationBarTitleText": "设置题目" } },
+    { "path": "pages/quiz-answer/index", "style": { "navigationBarTitleText": "答题" } },
+    { "path": "pages/quiz-papers/index", "style": { "navigationBarTitleText": "答卷批改" } },
+    { "path": "pages/group-chat/index", "style": { "navigationBarTitleText": "群聊" } }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",

@@ -34,28 +34,34 @@
 
     <!-- 申请区 -->
     <view class="card" v-else-if="canApply">
-      <text class="section-title">感兴趣？申请和发起人聊聊</text>
-      <text style="font-size:24rpx;color:#b8929e;display:block;margin-bottom:16rpx;">点击申请后，发起人会收到通知，同意后你们可以开始沟通活动细节</text>
-      <textarea v-model="applyMsg" placeholder="跟发起人打个招呼，说说你为什么想参加..." maxlength="200"
-        style="width:100%;height:120rpx;background:#fff5f7;border:1px solid #fce4ec;border-radius:12rpx;padding:16rpx;font-size:28rpx;color:#4a2040;box-sizing:border-box;" />
-      <button class="btn-primary" @tap="doApply" :disabled="applying">{{ applying ? '提交中...' : '申请沟通' }}</button>
+      <text class="section-title">感兴趣？先答题申请</text>
+      <text style="font-size:24rpx;color:#b8929e;display:block;margin-bottom:16rpx;">
+        发布人设置了 {{ activity.quizCount || 0 }} 道题目，回答后等待批改，通过即自动组队
+      </text>
+      <button v-if="activity.quizCount > 0" class="btn-primary" @tap="goTo(`/pages/quiz-answer/index?activityId=${activity.id}`)">开始答题</button>
+      <text v-else style="color:#b8929e;font-size:24rpx;display:block;text-align:center;">发布人还没出题，请稍后再来</text>
     </view>
     <view class="card status-card" v-else-if="!isLoggedIn">
-      <text @tap="goTo('/pages/login/index')" style="color:#f472b6;font-weight:600;">登录后申请参与 →</text>
+      <text @tap="goTo('/pages/login/index')" style="color:#f472b6;font-weight:600;">登录后参与 →</text>
     </view>
-    <view class="card status-card" v-else-if="isOwner">
-      <text style="color:#b8929e;">这是你发布的活动</text>
-      <button v-if="activity.teamComplete !== 1 && activity.status === 1" class="btn-primary" style="margin-top:16rpx;" @tap="doTeamComplete">标记为组队完成</button>
+    <view class="card" v-else-if="isOwner">
+      <text style="color:#7c5270;font-size:28rpx;display:block;margin-bottom:16rpx;">📋 你是发布人</text>
+      <view style="display:flex;flex-direction:column;gap:12rpx;">
+        <button class="btn-outline" @tap="goTo(`/pages/quiz-edit/index?activityId=${activity.id}`)">✏️ 出题 / 编辑题目</button>
+        <button class="btn-outline" @tap="goTo(`/pages/quiz-papers/index?activityId=${activity.id}`)">📊 查看答卷 / 批改</button>
+        <button v-if="activity.teamComplete !== 1 && activity.status === 1" class="btn-primary" @tap="doTeamComplete">🔒 标记为组队完成（停止申请）</button>
+        <button v-if="activity.teamComplete === 1" class="btn-danger-outline" @tap="doDeleteActivity">🗑 删除此活动</button>
+      </view>
     </view>
     <view class="card status-card" v-else-if="applyStatus === 0">
-      <text style="color:#d97706;">⏳ 已申请，等待发起人确认</text>
+      <text style="color:#d97706;">⏳ 已提交答卷，等待发布人批改</text>
     </view>
     <view class="card status-card" v-else-if="applyStatus === 1">
-      <text style="color:#059669;font-weight:700;font-size:32rpx;">🎉 组队成功！</text>
-      <button class="btn-primary" style="margin-top:16rpx;" @tap="goChat">去聊天 →</button>
+      <text style="color:#059669;font-weight:700;font-size:32rpx;">🎉 组队成功！已加入群聊</text>
+      <text style="font-size:24rpx;color:#b8929e;display:block;margin-top:8rpx;">去"消息-群聊"查看</text>
     </view>
     <view class="card status-card" v-else-if="applyStatus === 2">
-      <text style="color:#e11d48;">❌ 申请已被拒绝</text>
+      <text style="color:#e11d48;">❌ 答卷未通过</text>
     </view>
 
     <!-- 评论区 -->
@@ -173,6 +179,22 @@ async function doTeamComplete() {
   })
 }
 
+async function doDeleteActivity() {
+  uni.showModal({
+    title: '确认删除？', content: '删除后不可恢复',
+    confirmColor: '#e11d48',
+    success: async (res) => {
+      if (res.confirm) {
+        try {
+          await request({ url: `/activity/close/${activityId}`, method: 'POST', needAuth: true })
+          uni.showToast({ title: '已删除', icon: 'success' })
+          setTimeout(() => uni.navigateBack(), 500)
+        } catch (e) { uni.showToast({ title: e?.message || '删除失败', icon: 'none' }) }
+      }
+    }
+  })
+}
+
 function formatTime(t) {
   if (!t) return ''
   const d = new Date(t.replace('T', ' ').replace(/-/g, '/'))
@@ -273,7 +295,9 @@ onLoad(async (options) => {
 .section-title { font-size: 30rpx; font-weight: 700; color: #4a2040; display: block; margin-bottom: 16rpx; }
 .status-card { text-align: center; padding: 32rpx; }
 .action-text { font-size: 24rpx; color: #f472b6; }
-.btn-primary { margin-top: 16rpx; background: linear-gradient(135deg, #f472b6, #c084fc); color: #fff; border: none; border-radius: 40rpx; font-size: 28rpx; font-weight: 600; padding: 16rpx 0; }
+.btn-primary { margin-top: 0; background: linear-gradient(135deg, #f472b6, #c084fc); color: #fff; border: none; border-radius: 40rpx; font-size: 28rpx; font-weight: 600; padding: 16rpx 0; }
+.btn-outline { background: #fff; color: #f472b6; border: 2px solid #fce4ec; border-radius: 40rpx; font-size: 28rpx; }
+.btn-danger-outline { background: #fff; color: #e11d48; border: 2px solid #fecdd3; border-radius: 40rpx; font-size: 28rpx; }
 .btn-small { background: linear-gradient(135deg, #f472b6, #c084fc); color: #fff; border: none; border-radius: 20rpx; font-size: 24rpx; padding: 8rpx 24rpx; line-height: 1.4; }
 .btn-cancel { flex: 1; background: #f5f5f5; color: #666; border: none; border-radius: 40rpx; font-size: 28rpx; }
 .btn-danger { flex: 1; background: #e11d48; color: #fff; border: none; border-radius: 40rpx; font-size: 28rpx; }
