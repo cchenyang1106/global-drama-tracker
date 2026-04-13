@@ -1,182 +1,107 @@
 <template>
-  <view class="page-bg">
-    <!-- 自定义导航栏 -->
-    <view class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
-      <text class="nav-title">🎬 Drama Tracker</text>
-    </view>
-
-    <!-- 搜索框 -->
-    <view class="search-box">
-      <input class="search-input" placeholder="搜索剧集..." confirm-type="search" @confirm="onSearch" v-model="keyword" />
-    </view>
-
-    <!-- 地区快捷入口 -->
-    <scroll-view scroll-x class="region-scroll">
-      <view class="region-item" v-for="r in regionList" :key="r.code"
-        @tap="goRegion(r.code)">
-        <text>{{ r.emoji }} {{ r.label }}</text>
+  <view class="page">
+    <view class="hero">
+      <text class="hero-title">趣活组队，一起玩 🎯</text>
+      <view class="search-bar">
+        <input class="search-input" v-model="keyword" placeholder="搜索活动..." @confirm="loadData()" />
       </view>
+    </view>
+
+    <scroll-view class="cats" scroll-x>
+      <text v-for="c in cats" :key="c.value" :class="['cat-item', { active: currentCat === c.value }]"
+        @tap="currentCat = c.value; loadData()">{{ c.icon }} {{ c.label }}</text>
     </scroll-view>
 
-    <!-- 今日更新 -->
-    <view class="section">
-      <view class="section-header">
-        <text class="section-title">📺 今日更新</text>
-        <text class="section-more" @tap="goTab(1)">更多 ></text>
-      </view>
-      <scroll-view scroll-x class="drama-scroll">
-        <view class="drama-card" v-for="d in todayList" :key="d.id" @tap="goDetail(d.id)">
-          <image class="card-poster" :src="d.posterUrl || defaultPoster" mode="aspectFill" />
-          <text class="card-title">{{ d.title }}</text>
-          <view class="card-meta">
-            <text class="card-rating" v-if="d.userRating">⭐ {{ Number(d.userRating).toFixed(1) }}</text>
-            <text class="card-region">{{ getRegionLabel(d.region) }}</text>
+    <view class="list">
+      <view v-for="item in list" :key="item.id" class="card" @tap="goDetail(item.id)">
+        <view class="card-top">
+          <view class="author">
+            <view class="avatar">{{ (item.authorName || '?').charAt(0) }}</view>
+            <view>
+              <text class="name">{{ item.authorName || '匿名' }}</text>
+              <text class="sub">{{ item.authorCity || '' }}</text>
+            </view>
           </view>
+          <text class="cat-badge">{{ item.category }}</text>
         </view>
-      </scroll-view>
+        <text class="card-title">{{ item.title }}</text>
+        <text class="card-desc">{{ item.description }}</text>
+        <view class="card-meta">
+          <text v-if="item.location">📍{{ item.location }}</text>
+          <text v-if="item.activityTime">🕐{{ item.activityTime }}</text>
+          <text>👥{{ item.joinedCount || 0 }}/{{ item.maxPeople || 1 }}</text>
+        </view>
+      </view>
+      <view v-if="list.length === 0 && !loading" class="empty">暂无活动，快来发布第一个吧！</view>
     </view>
 
-    <!-- 热门剧集 -->
-    <view class="section">
-      <view class="section-header">
-        <text class="section-title">🔥 热门剧集</text>
-      </view>
-      <view class="hot-list">
-        <view class="hot-item" v-for="(d, i) in hotList" :key="d.dramaId || d.id" @tap="goDetail(d.dramaId || d.id)">
-          <text class="hot-rank" :class="{ top3: i < 3 }">{{ i + 1 }}</text>
-          <view class="hot-info">
-            <text class="hot-title">{{ d.dramaTitle || d.title }}</text>
-            <text class="hot-sub">🔥 {{ formatHot(d.hotScore) }}</text>
-          </view>
-          <text class="hot-score" v-if="d.score">{{ Number(d.score).toFixed(1) }}</text>
-        </view>
-      </view>
-    </view>
+    <view class="fab" @tap="goPublish">✏️</view>
   </view>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getTodayUpdated } from '@/api/drama'
-import { getDailyRanking } from '@/api/ranking'
-import { REGIONS } from '@/utils/config'
+import { getActivities } from '@/api/activity'
 
-const statusBarHeight = uni.getSystemInfoSync().statusBarHeight || 44
 const keyword = ref('')
-const todayList = ref([])
-const hotList = ref([])
-const defaultPoster = 'https://via.placeholder.com/300x420/1e293b/475569?text=No+Poster'
+const currentCat = ref('all')
+const list = ref([])
+const loading = ref(false)
 
-const regionList = Object.entries(REGIONS).map(([code, info]) => ({ code, ...info }))
+const cats = [
+  { value: 'all', label: '全部', icon: '🔥' },
+  { value: '旅游', label: '旅游', icon: '✈️' },
+  { value: '运动', label: '运动', icon: '⚽' },
+  { value: '美食', label: '美食', icon: '🍔' },
+  { value: '学习', label: '学习', icon: '📚' },
+  { value: '游戏', label: '游戏', icon: '🎮' },
+  { value: '其他', label: '其他', icon: '💡' },
+]
 
-function getRegionLabel(code) {
-  return REGIONS[code]?.label || '其他'
+function goDetail(id) { uni.navigateTo({ url: `/pages/activity-detail/index?id=${id}` }) }
+function goPublish() {
+  const token = uni.getStorageSync('token')
+  if (!token) return uni.navigateTo({ url: '/pages/login/index' })
+  uni.navigateTo({ url: '/pages/publish/index' })
 }
 
-function goDetail(id) {
-  uni.navigateTo({ url: `/pages/drama-detail/index?id=${id}` })
-}
-
-function goRegion(code) {
-  uni.switchTab({ url: '/pages/dramas/index' })
-}
-
-function goTab(idx) {
-  uni.switchTab({ url: '/pages/dramas/index' })
-}
-
-function formatHot(val) {
-  if (!val) return '0'
-  if (val >= 10000) return (val / 10000).toFixed(1) + '万'
-  return val
-}
-
-function onSearch() {
-  if (keyword.value.trim()) {
-    uni.navigateTo({ url: `/pages/dramas/index?keyword=${keyword.value.trim()}` })
-  }
-}
-
-onMounted(async () => {
+async function loadData() {
+  loading.value = true
   try {
-    todayList.value = await getTodayUpdated() || []
+    const data = await getActivities({
+      page: 1, size: 20,
+      category: currentCat.value === 'all' ? '' : currentCat.value,
+      keyword: keyword.value,
+    })
+    list.value = data?.records || []
   } catch {}
-  try {
-    const data = await getDailyRanking({ page: 1, size: 10 })
-    hotList.value = (data?.list || data?.records || data || []).slice(0, 10)
-  } catch {}
-})
+  loading.value = false
+}
+
+onMounted(loadData)
 </script>
 
-<style lang="scss">
-.nav-bar {
-  background: #0f172a;
-  padding-bottom: 12rpx;
-  text-align: center;
-}
-.nav-title { font-size: 36rpx; font-weight: 800; color: #f1f5f9; }
+<style>
+.page { padding: 16rpx; background: #fff5f7; min-height: 100vh; }
+.hero { text-align: center; padding: 40rpx 0 20rpx; }
+.hero-title { font-size: 44rpx; font-weight: 800; color: #f472b6; }
+.search-bar { margin-top: 20rpx; padding: 0 40rpx; }
+.search-input { background: #ffffff; border-radius: 16rpx; padding: 16rpx 24rpx; color: #4a2040; font-size: 28rpx; }
 
-.search-box { padding: 16rpx 24rpx; }
-.search-input {
-  background: #1e293b;
-  border-radius: 40rpx;
-  padding: 16rpx 28rpx;
-  color: #f1f5f9;
-  font-size: 28rpx;
-}
+.cats { white-space: nowrap; padding: 16rpx 0; }
+.cat-item { display: inline-block; padding: 12rpx 24rpx; margin-right: 12rpx; border-radius: 32rpx; background: #ffffff; color: #7c5270; font-size: 26rpx; }
+.cat-item.active { background: rgba(99,102,241,0.2); color: #f472b6; }
 
-.region-scroll {
-  white-space: nowrap;
-  padding: 8rpx 24rpx 20rpx;
-}
-.region-item {
-  display: inline-block;
-  padding: 12rpx 24rpx;
-  margin-right: 16rpx;
-  background: #1e293b;
-  border-radius: 40rpx;
-  font-size: 26rpx;
-  color: #cbd5e1;
-}
-
-.section { padding: 0 24rpx 32rpx; }
-.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; }
-.section-title { font-size: 32rpx; font-weight: 700; color: #f1f5f9; }
-.section-more { font-size: 24rpx; color: #6366f1; }
-
-.drama-scroll { white-space: nowrap; }
-.drama-card {
-  display: inline-block;
-  width: 240rpx;
-  margin-right: 20rpx;
-  vertical-align: top;
-}
-.card-poster { width: 240rpx; height: 340rpx; border-radius: 16rpx; background: #1e293b; }
-.card-title { font-size: 26rpx; color: #f1f5f9; margin-top: 10rpx; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.card-meta { display: flex; gap: 12rpx; margin-top: 6rpx; }
-.card-rating { font-size: 22rpx; color: #fbbf24; }
-.card-region { font-size: 22rpx; color: #94a3b8; }
-
-.hot-list { display: flex; flex-direction: column; gap: 16rpx; }
-.hot-item {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-  background: #1e293b;
-  border-radius: 16rpx;
-  padding: 16rpx;
-}
-.hot-rank {
-  width: 48rpx; height: 48rpx; border-radius: 50%;
-  background: rgba(148,163,184,0.1);
-  text-align: center; line-height: 48rpx;
-  font-size: 24rpx; font-weight: 700; color: #94a3b8;
-  flex-shrink: 0;
-}
-.hot-rank.top3 { background: linear-gradient(135deg, #f59e0b, #ef4444); color: white; }
-.hot-poster { width: 80rpx; height: 112rpx; border-radius: 10rpx; flex-shrink: 0; background: #334155; }
-.hot-info { flex: 1; min-width: 0; }
-.hot-title { font-size: 28rpx; color: #f1f5f9; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.hot-sub { font-size: 22rpx; color: #94a3b8; margin-top: 6rpx; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.hot-score { font-size: 30rpx; font-weight: 700; color: #fbbf24; flex-shrink: 0; }
+.card { background: #ffffff; border-radius: 20rpx; padding: 28rpx; margin-bottom: 20rpx; }
+.card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; }
+.author { display: flex; align-items: center; gap: 16rpx; }
+.avatar { width: 64rpx; height: 64rpx; border-radius: 50%; background: #f472b6; color: white; display: flex; align-items: center; justify-content: center; font-size: 28rpx; font-weight: 700; }
+.name { font-size: 28rpx; font-weight: 600; color: #4a2040; display: block; }
+.sub { font-size: 22rpx; color: #b8929e; }
+.cat-badge { background: rgba(99,102,241,0.15); color: #f472b6; padding: 6rpx 16rpx; border-radius: 16rpx; font-size: 24rpx; }
+.card-title { font-size: 32rpx; font-weight: 700; color: #4a2040; margin-bottom: 8rpx; display: block; }
+.card-desc { font-size: 26rpx; color: #7c5270; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.card-meta { display: flex; gap: 16rpx; margin-top: 12rpx; font-size: 24rpx; color: #b8929e; flex-wrap: wrap; }
+.empty { text-align: center; padding: 80rpx; color: #b8929e; font-size: 28rpx; }
+.fab { position: fixed; right: 32rpx; bottom: 180rpx; width: 96rpx; height: 96rpx; border-radius: 50%; background: linear-gradient(135deg,#f472b6,#c084fc); display: flex; align-items: center; justify-content: center; font-size: 40rpx; box-shadow: 0 8rpx 24rpx rgba(99,102,241,0.4); }
 </style>

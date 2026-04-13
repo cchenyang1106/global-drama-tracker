@@ -1,27 +1,45 @@
 <template>
-  <view class="page-bg login-page">
-    <view class="login-card">
-      <text class="login-title">{{ isRegister ? '📝 注册账号' : '🎬 登录' }}</text>
-      <text class="login-sub">Global Drama Tracker</text>
+  <view style="padding: 150rpx 48rpx 0;">
+    <view style="background: #fff; border-radius: 24rpx; padding: 60rpx 40rpx; text-align: center;">
+      <text style="font-size: 40rpx; font-weight: 800; color: #4a2040; display: block; margin-bottom: 8rpx;">{{ isRegister ? '📝 注册' : '🎯 登录' }}</text>
+      <text style="font-size: 24rpx; color: #b8929e; display: block; margin-bottom: 48rpx;">趣活组队 · 发现有趣的活动，找到一起玩的人</text>
 
-      <view class="form-group">
-        <input class="form-input" v-model="form.phone" placeholder="手机号" type="number" maxlength="11" />
-      </view>
-      <view class="form-group" v-if="isRegister">
-        <input class="form-input" v-model="form.nickname" placeholder="昵称（选填）" />
-      </view>
-      <view class="form-group">
-        <input class="form-input" v-model="form.password" placeholder="密码（至少6位）" password />
+      <input
+        v-model="form.phone"
+        placeholder="手机号"
+        maxlength="11"
+        style="background: #fff5f7; border: 2rpx solid #fce4ec; border-radius: 16rpx; padding: 24rpx; color: #4a2040; font-size: 28rpx; margin-bottom: 24rpx;"
+      />
+
+      <input
+        v-if="isRegister"
+        v-model="form.nickname"
+        placeholder="昵称（选填）"
+        style="background: #fff5f7; border: 2rpx solid #fce4ec; border-radius: 16rpx; padding: 24rpx; color: #4a2040; font-size: 28rpx; margin-bottom: 24rpx;"
+      />
+
+      <input
+        v-model="form.password"
+        placeholder="密码（至少6位）"
+        :password="true"
+        style="background: #fff5f7; border: 2rpx solid #fce4ec; border-radius: 16rpx; padding: 24rpx; color: #4a2040; font-size: 28rpx; margin-bottom: 24rpx;"
+      />
+
+      <button
+        @tap="handleSubmit"
+        :disabled="loading"
+        style="background: linear-gradient(135deg, #f472b6, #c084fc); color: white; border: none; border-radius: 40rpx; padding: 24rpx; font-size: 30rpx; font-weight: 700; margin-top: 16rpx;"
+      >{{ loading ? '处理中...' : (isRegister ? '注 册' : '登 录') }}</button>
+
+      <view v-if="isRegister" style="display: flex; align-items: center; justify-content: center; gap: 8rpx; margin-top: 20rpx;">
+        <checkbox :checked="agreePrivacy" @tap="agreePrivacy = !agreePrivacy" style="transform: scale(0.7);" />
+        <text style="font-size: 22rpx; color: #b8929e;">我已阅读并同意</text>
+        <text style="font-size: 22rpx; color: #f472b6;" @tap="uni.navigateTo({url:'/pages/privacy/index'})">《隐私政策》</text>
       </view>
 
-      <view class="submit-btn" @tap="handleSubmit">
-        <text>{{ loading ? '处理中...' : (isRegister ? '注 册' : '登 录') }}</text>
-      </view>
-
-      <view class="switch-row">
-        <text class="switch-text" v-if="!isRegister">还没有账号？</text>
-        <text class="switch-text" v-else>已有账号？</text>
-        <text class="switch-link" @tap="isRegister = !isRegister">{{ isRegister ? '去登录' : '立即注册' }}</text>
+      <view style="display: flex; justify-content: center; gap: 8rpx; margin-top: 28rpx;">
+        <text style="font-size: 24rpx; color: #b8929e;">{{ isRegister ? '已有账号？' : '还没有账号？' }}</text>
+        <text style="font-size: 24rpx; color: #f472b6;" @tap="isRegister = !isRegister">{{ isRegister ? '去登录' : '立即注册' }}</text>
       </view>
     </view>
   </view>
@@ -35,14 +53,18 @@ import { useUserStore } from '@/stores/user'
 const userStore = useUserStore()
 const loading = ref(false)
 const isRegister = ref(false)
+const agreePrivacy = ref(false)
 const form = reactive({ phone: '', password: '', nickname: '' })
 
 async function handleSubmit() {
   if (!form.phone || !/^1[3-9]\d{9}$/.test(form.phone)) {
-    uni.showToast({ title: '请输入正确的手机号', icon: 'none' }); return
+    return uni.showToast({ title: '请输入正确的手机号', icon: 'none' })
   }
   if (!form.password || form.password.length < 6) {
-    uni.showToast({ title: '密码至少6位', icon: 'none' }); return
+    return uni.showToast({ title: '密码至少6位', icon: 'none' })
+  }
+  if (isRegister.value && !agreePrivacy.value) {
+    return uni.showToast({ title: '请先同意隐私政策', icon: 'none' })
   }
   loading.value = true
   try {
@@ -60,23 +82,3 @@ async function handleSubmit() {
   loading.value = false
 }
 </script>
-
-<style lang="scss">
-.login-page { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 40rpx; }
-.login-card { width: 100%; max-width: 600rpx; background: #1e293b; border-radius: 24rpx; padding: 60rpx 40rpx; text-align: center; }
-.login-title { font-size: 40rpx; font-weight: 800; color: #f1f5f9; display: block; margin-bottom: 8rpx; }
-.login-sub { font-size: 24rpx; color: #64748b; display: block; margin-bottom: 48rpx; }
-
-.form-group { margin-bottom: 24rpx; }
-.form-input { background: #0f172a; border-radius: 16rpx; padding: 24rpx; color: #f1f5f9; font-size: 28rpx; width: 100%; box-sizing: border-box; }
-
-.submit-btn {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  border-radius: 40rpx; padding: 24rpx; text-align: center;
-  color: white; font-size: 30rpx; font-weight: 700; margin-top: 16rpx;
-}
-
-.switch-row { display: flex; justify-content: center; gap: 8rpx; margin-top: 28rpx; }
-.switch-text { font-size: 24rpx; color: #64748b; }
-.switch-link { font-size: 24rpx; color: #6366f1; }
-</style>

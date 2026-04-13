@@ -1,5 +1,13 @@
-import { get, post } from './request'
+import { request } from './request'
 
-export const register = (phone, password, nickname) => post('/auth/register', { phone, password, nickname })
-export const login = (phone, password) => post('/auth/login', { phone, password })
-export const getMe = () => get('/auth/me')
+export function register(phone, password, nickname) {
+  return request({ url: '/auth/register', method: 'POST', data: { phone, password, nickname } })
+}
+
+export function login(phone, password) {
+  return request({ url: '/auth/login', method: 'POST', data: { phone, password } })
+}
+
+export function getMe() {
+  return request({ url: '/auth/me', method: 'GET', needAuth: true })
+}

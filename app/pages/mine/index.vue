@@ -1,109 +1,98 @@
 <template>
-  <view class="page-bg">
-    <!-- 已登录 -->
-    <view v-if="userStore.isLoggedIn" class="mine-page">
-      <view class="user-card">
-        <view class="avatar">{{ userStore.nickname?.charAt(0) || '?' }}</view>
-        <view class="user-info">
-          <text class="user-name">{{ userStore.nickname }}</text>
-          <text class="user-phone">{{ userStore.user?.phone }}</text>
+  <view class="page">
+    <view v-if="isLoggedIn" class="card user-card">
+      <view class="user-top">
+        <view class="avatar-big">{{ (nickname || '?').charAt(0) }}</view>
+        <view>
+          <text class="user-name">{{ nickname || '用户' }}</text>
+          <text class="user-phone">{{ phone || '' }}</text>
         </view>
-      </view>
-
-      <view class="menu-list">
-        <view class="menu-item" @tap="goPage('/pages/dramas/index')">
-          <text>📺 我的收藏</text>
-          <text class="arrow">></text>
-        </view>
-        <view class="menu-item" @tap="goPage('/pages/ranking/index')">
-          <text>🏆 排行榜</text>
-          <text class="arrow">></text>
-        </view>
-      </view>
-
-      <view class="logout-btn" @tap="handleLogout">
-        <text>退出登录</text>
       </view>
     </view>
 
-    <!-- 未登录 -->
-    <view v-else class="mine-page">
-      <view class="not-login">
-        <text class="nl-icon">🎬</text>
-        <text class="nl-title">登录 Drama Tracker</text>
-        <text class="nl-desc">登录后可以评论、收藏、打分</text>
-        <view class="nl-btn" @tap="goLogin">
-          <text>立即登录</text>
-        </view>
+    <view v-if="isLoggedIn" class="card">
+      <view class="menu-item" @click="uni.navigateTo({url:'/pages/profile/index'})">
+        <text>✏️ 编辑资料</text><text class="arrow">›</text>
+      </view>
+      <view class="menu-item" @click="uni.navigateTo({url:'/pages/publish/index'})">
+        <text>📝 发布活动</text><text class="arrow">›</text>
+      </view>
+      <view class="menu-item" @click="uni.switchTab({url:'/pages/messages/index'})">
+        <text>💬 我的消息</text><text class="arrow">›</text>
+      </view>
+    </view>
+
+    <view v-if="isLoggedIn" class="card">
+      <view class="menu-item" @click="uni.navigateTo({url:'/pages/my-data/index'})">
+        <text>📦 我的数据（导出/注销）</text><text class="arrow">›</text>
+      </view>
+      <view class="menu-item" @click="uni.navigateTo({url:'/pages/privacy/index'})">
+        <text>🔒 隐私政策</text><text class="arrow">›</text>
+      </view>
+    </view>
+
+    <view v-if="isLoggedIn" style="padding:20rpx;">
+      <button class="btn-logout" @click="doLogout">退出登录</button>
+    </view>
+
+    <view v-if="!isLoggedIn" class="card" style="text-align:center;padding:60rpx;">
+      <text style="font-size:40rpx;display:block;margin-bottom:20rpx;">🎯</text>
+      <text style="font-size:30rpx;font-weight:700;color:#4a2040;display:block;margin-bottom:12rpx;">趣活组队</text>
+      <text style="font-size:26rpx;color:#b8929e;display:block;margin-bottom:32rpx;">登录后发布活动、参与活动</text>
+      <button class="btn-primary" @click="uni.navigateTo({url:'/pages/login/index'})">登录 / 注册</button>
+      <view style="margin-top:20rpx;">
+        <text style="font-size:24rpx;color:#b8929e;" @click="uni.navigateTo({url:'/pages/privacy/index'})">🔒 隐私政策</text>
       </view>
     </view>
   </view>
 </template>
 
 <script setup>
-import { onShow } from '@dcloudio/uni-app'
-import { useUserStore } from '@/stores/user'
+import { ref, onMounted } from 'vue'
 
-const userStore = useUserStore()
+const isLoggedIn = ref(false)
+const nickname = ref('')
+const phone = ref('')
 
-function goLogin() { uni.navigateTo({ url: '/pages/login/index' }) }
-function goPage(url) { uni.navigateTo({ url }) }
+function checkLogin() {
+  const token = uni.getStorageSync('token')
+  isLoggedIn.value = !!token
+  nickname.value = uni.getStorageSync('nickname') || ''
+  phone.value = uni.getStorageSync('phone') || ''
+}
 
-function handleLogout() {
+function doLogout() {
   uni.showModal({
-    title: '提示',
-    content: '确定退出登录？',
-    success(res) {
+    title: '提示', content: '确定退出登录？',
+    success: (res) => {
       if (res.confirm) {
-        userStore.logout()
+        uni.removeStorageSync('token')
+        uni.removeStorageSync('userId')
+        uni.removeStorageSync('nickname')
+        uni.removeStorageSync('phone')
+        isLoggedIn.value = false
         uni.showToast({ title: '已退出', icon: 'success' })
       }
-    },
+    }
   })
 }
 
-onShow(() => { userStore.init() })
+onMounted(checkLogin)
+// 每次显示时刷新状态
+uni.$on('pageShow', checkLogin)
 </script>
 
-<style lang="scss">
-.mine-page { padding: 24rpx; }
-
-.user-card {
-  display: flex; align-items: center; gap: 24rpx;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  border-radius: 20rpx; padding: 40rpx 30rpx;
-}
-.avatar {
-  width: 100rpx; height: 100rpx; border-radius: 50%;
-  background: rgba(255,255,255,0.2); color: white;
-  font-size: 44rpx; font-weight: 800;
-  display: flex; align-items: center; justify-content: center;
-  text-align: center; line-height: 100rpx;
-}
-.user-info { flex: 1; }
-.user-name { font-size: 34rpx; font-weight: 700; color: white; display: block; }
-.user-phone { font-size: 24rpx; color: rgba(255,255,255,0.7); margin-top: 6rpx; display: block; }
-
-.menu-list { margin-top: 32rpx; }
-.menu-item {
-  display: flex; justify-content: space-between; align-items: center;
-  background: #1e293b; border-radius: 16rpx; padding: 28rpx 24rpx;
-  margin-bottom: 12rpx; font-size: 28rpx; color: #f1f5f9;
-}
-.arrow { color: #64748b; }
-
-.logout-btn {
-  margin-top: 60rpx; text-align: center;
-  padding: 24rpx; background: rgba(239,68,68,0.1);
-  border-radius: 16rpx; color: #f87171; font-size: 28rpx;
-}
-
-.not-login { display: flex; flex-direction: column; align-items: center; padding-top: 200rpx; }
-.nl-icon { font-size: 100rpx; margin-bottom: 20rpx; }
-.nl-title { font-size: 36rpx; font-weight: 700; color: #f1f5f9; margin-bottom: 10rpx; }
-.nl-desc { font-size: 26rpx; color: #94a3b8; margin-bottom: 40rpx; }
-.nl-btn {
-  padding: 20rpx 60rpx; background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  border-radius: 40rpx; color: white; font-size: 30rpx; font-weight: 600;
-}
+<style scoped>
+.page { padding: 20rpx; }
+.card { background: #fff; border-radius: 24rpx; padding: 0; margin-bottom: 20rpx; border: 1px solid #fce4ec; overflow: hidden; }
+.user-card { padding: 32rpx; }
+.user-top { display: flex; gap: 20rpx; align-items: center; }
+.avatar-big { width: 100rpx; height: 100rpx; border-radius: 50%; background: linear-gradient(135deg, #f472b6, #c084fc); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 42rpx; font-weight: 700; }
+.user-name { font-size: 34rpx; font-weight: 800; color: #4a2040; display: block; }
+.user-phone { font-size: 26rpx; color: #b8929e; display: block; margin-top: 4rpx; }
+.menu-item { display: flex; justify-content: space-between; align-items: center; padding: 28rpx 32rpx; border-bottom: 1px solid #fce4ec; font-size: 28rpx; color: #4a2040; }
+.menu-item:last-child { border-bottom: none; }
+.arrow { color: #b8929e; font-size: 32rpx; }
+.btn-primary { background: linear-gradient(135deg, #f472b6, #c084fc); color: #fff; border: none; border-radius: 40rpx; font-size: 30rpx; font-weight: 600; }
+.btn-logout { background: #fff; color: #e11d48; border: 2px solid #fce4ec; border-radius: 40rpx; font-size: 28rpx; }
 </style>
