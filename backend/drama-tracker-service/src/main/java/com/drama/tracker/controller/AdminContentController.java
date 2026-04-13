@@ -255,6 +255,25 @@ public class AdminContentController {
         r.setStatus(newStatus);
         r.setAdminNote(note);
         reportMapper.updateById(r);
-        return Result.success(newStatus == 1 ? "已处理" : "已驳回");
+
+        // 处理（非驳回）时自动下架被举报内容
+        if (newStatus == 1) {
+            switch (r.getTargetType()) {
+                case "activity" -> {
+                    Activity a = activityMapper.selectById(r.getTargetId());
+                    if (a != null) { a.setStatus(0); a.setDeleted(1); activityMapper.updateById(a); }
+                }
+                case "comment" -> {
+                    ActivityComment c = commentMapper.selectById(r.getTargetId());
+                    if (c != null) { c.setHidden(1); commentMapper.updateById(c); }
+                }
+                case "user" -> {
+                    User u = userMapper.selectById(r.getTargetId());
+                    if (u != null) { u.setStatus(0); userMapper.updateById(u); }
+                }
+            }
+        }
+
+        return Result.success(newStatus == 1 ? "已处理并下架" : "已驳回");
     }
 }

@@ -97,22 +97,23 @@
       </view>
     </view>
 
-    <!-- 举报弹窗 -->
-    <uni-popup ref="reportPopup" type="center" v-if="showReport">
+    <!-- 举报弹窗（居中遮罩层） -->
+    <view v-if="showReport" class="overlay" @tap.self="showReport = false">
       <view class="popup-content">
-        <text class="popup-title">举报</text>
-        <view v-for="r in reasons" :key="r" class="reason-item" @click="reportReason = r"
-          :style="reportReason === r ? 'background:#fce4ec;border-color:#f472b6;' : ''">
-          <text>{{ r }}</text>
+        <text class="popup-title">🚩 举报</text>
+        <text style="font-size:24rpx;color:#b8929e;display:block;margin-bottom:20rpx;">请选择举报原因</text>
+        <view v-for="r in reasons" :key="r" class="reason-item" @tap="reportReason = r"
+          :style="reportReason === r ? 'background:#fce4ec;border-color:#f472b6;font-weight:600;' : ''">
+          <text>{{ reportReason === r ? '✓ ' : '' }}{{ r }}</text>
         </view>
         <textarea v-model="reportDetail" placeholder="详细说明（选填）" maxlength="200"
           style="width:100%;height:120rpx;background:#fff5f7;border:1px solid #fce4ec;border-radius:12rpx;padding:16rpx;font-size:26rpx;color:#4a2040;margin-top:16rpx;box-sizing:border-box;" />
         <view style="display:flex;gap:16rpx;margin-top:20rpx;">
-          <button class="btn-cancel" @click="showReport = false">取消</button>
-          <button class="btn-danger" @click="submitReport" :disabled="!reportReason">提交举报</button>
+          <button class="btn-cancel" @tap="showReport = false">取消</button>
+          <button class="btn-danger" @tap="submitReport" :disabled="!reportReason">提交举报</button>
         </view>
       </view>
-    </uni-popup>
+    </view>
   </view>
   <view v-else style="text-align:center;padding:100rpx;color:#b8929e;">加载中...</view>
 </template>
@@ -278,7 +279,8 @@ onLoad(async (options) => {
 .btn-danger { flex: 1; background: #e11d48; color: #fff; border: none; border-radius: 40rpx; font-size: 28rpx; }
 
 /* 举报弹窗 */
-.popup-content { background: #fff; border-radius: 24rpx; padding: 32rpx; width: 600rpx; }
-.popup-title { font-size: 32rpx; font-weight: 700; color: #4a2040; display: block; margin-bottom: 20rpx; text-align: center; }
+.overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 999; }
+.popup-content { background: #fff; border-radius: 24rpx; padding: 32rpx; width: 600rpx; max-height: 80vh; overflow-y: auto; }
+.popup-title { font-size: 32rpx; font-weight: 700; color: #4a2040; display: block; margin-bottom: 8rpx; text-align: center; }
 .reason-item { padding: 16rpx 20rpx; border: 1px solid #fce4ec; border-radius: 12rpx; margin-bottom: 12rpx; font-size: 28rpx; color: #4a2040; }
 </style>
