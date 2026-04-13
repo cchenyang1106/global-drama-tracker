@@ -1,7 +1,11 @@
 <template>
   <view style="padding: 24rpx; background: #fff5f7; min-height: 100vh;">
     <!-- 查看他人资料 -->
-    <view v-if="viewUserId" style="background: #fff; border-radius: 20rpx; padding: 32rpx;">
+    <view v-if="viewUserId && loading" style="text-align:center;padding:100rpx;color:#b8929e;">加载中...</view>
+    <view v-else-if="viewUserId && !profile.nickname && !profile.city" style="background:#fff;border-radius:20rpx;padding:60rpx;text-align:center;">
+      <text style="font-size:30rpx;color:#b8929e;display:block;">该用户暂未填写个人资料</text>
+    </view>
+    <view v-else-if="viewUserId" style="background: #fff; border-radius: 20rpx; padding: 32rpx;">
       <view style="display: flex; gap: 20rpx; align-items: center; margin-bottom: 24rpx;">
         <image v-if="profile.avatarUrl" :src="profile.avatarUrl" style="width: 100rpx; height: 100rpx; border-radius: 50%;" mode="aspectFill" />
         <view v-else style="width: 100rpx; height: 100rpx; border-radius: 50%; background: #f472b6; color: white; display: flex; align-items: center; justify-content: center; font-size: 40rpx; font-weight: 700;">
@@ -86,6 +90,7 @@ import { getMyProfile, saveProfile, getUserProfile } from '@/api/profile'
 const viewUserId = ref(null)
 const profile = ref({})
 const saving = ref(false)
+const loading = ref(false)
 const photoList = ref([])
 const form = reactive({ nickname: '', avatarUrl: '', gender: 0, age: '', city: '', occupation: '', bio: '', hobbies: '', wechat: '' })
 
@@ -156,12 +161,18 @@ async function save() {
 onLoad(async (options) => {
   viewUserId.value = options?.userId || null
   if (viewUserId.value) {
+    loading.value = true
     try {
-      profile.value = await getUserProfile(viewUserId.value)
-      if (profile.value?.photos) {
-        try { photoList.value = JSON.parse(profile.value.photos) } catch {}
+      const data = await getUserProfile(viewUserId.value)
+      profile.value = data || {}
+      if (data?.photos) {
+        try { photoList.value = JSON.parse(data.photos) } catch {}
       }
-    } catch {}
+    } catch (e) {
+      console.error('获取资料失败', e)
+      uni.showToast({ title: '获取资料失败', icon: 'none' })
+    }
+    loading.value = false
   } else {
     try {
       const data = await getMyProfile()
