@@ -43,9 +43,20 @@ let timer = null
 
 function formatTime(t) {
   if (!t) return ''
-  const d = new Date(t.replace('T', ' ').replace(/-/g, '/'))
+  let d
+  if (Array.isArray(t)) {
+    // Java LocalDateTime 序列化为数组 [year, month, day, hour, minute, second]
+    d = new Date(t[0], t[1] - 1, t[2], t[3] || 0, t[4] || 0, t[5] || 0)
+  } else if (typeof t === 'string') {
+    d = new Date(t.replace('T', ' ').replace(/-/g, '/'))
+  } else {
+    d = new Date(t)
+  }
   if (isNaN(d.getTime())) return ''
-  return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`
+  const now = new Date()
+  const time = `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`
+  if (d.toDateString() === now.toDateString()) return time
+  return `${d.getMonth() + 1}/${d.getDate()} ${time}`
 }
 
 async function load() {

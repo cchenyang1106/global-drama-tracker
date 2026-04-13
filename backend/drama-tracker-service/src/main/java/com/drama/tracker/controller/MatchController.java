@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.time.LocalDateTime;
 
 @Tag(name = "组队与沟通", description = "活动组队与沟通接口")
 @RestController
@@ -161,6 +162,7 @@ public class MatchController {
             msg.setContent(AesUtil.encrypt("组队成功！可以开始沟通活动详情了 🎉", chatSecret));
             msg.setMsgType(0);
             msg.setIsRead(0);
+            msg.setCreateTime(LocalDateTime.now());
             chatMapper.insert(msg);
         }
         return Result.success(action == 1 ? "已同意" : "已拒绝");
@@ -211,6 +213,15 @@ public class MatchController {
 
             result.add(item);
         }
+        // 按最后消息时间倒序（有新消息的排前面）
+        result.sort((a, b) -> {
+            Object ta = a.get("lastTime");
+            Object tb = b.get("lastTime");
+            if (ta == null && tb == null) return 0;
+            if (ta == null) return 1;
+            if (tb == null) return -1;
+            return tb.toString().compareTo(ta.toString());
+        });
         return Result.success(result);
     }
 
@@ -241,6 +252,7 @@ public class MatchController {
         msg.setContent(AesUtil.encrypt(content, chatSecret));
         msg.setMsgType(body.get("msgType") != null ? Integer.parseInt(body.get("msgType").toString()) : 0);
         msg.setIsRead(0);
+        msg.setCreateTime(LocalDateTime.now());
         chatMapper.insert(msg);
         return Result.success(msg.getId());
     }
