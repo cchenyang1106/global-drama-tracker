@@ -7,7 +7,9 @@
     { "path": "pages/publish/index", "style": { "navigationBarTitleText": "发布活动" } },
     { "path": "pages/chat/index", "style": { "navigationBarTitleText": "聊天" } },
     { "path": "pages/profile/index", "style": { "navigationBarTitleText": "编辑资料" } },
-    { "path": "pages/login/index", "style": { "navigationBarTitleText": "登录" } }
+    { "path": "pages/login/index", "style": { "navigationBarTitleText": "登录" } },
+    { "path": "pages/privacy/index", "style": { "navigationBarTitleText": "隐私政策" } },
+    { "path": "pages/my-data/index", "style": { "navigationBarTitleText": "我的数据" } }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",

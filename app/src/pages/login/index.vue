@@ -31,6 +31,12 @@
         style="background: linear-gradient(135deg, #f472b6, #c084fc); color: white; border: none; border-radius: 40rpx; padding: 24rpx; font-size: 30rpx; font-weight: 700; margin-top: 16rpx;"
       >{{ loading ? '处理中...' : (isRegister ? '注 册' : '登 录') }}</button>
 
+      <view v-if="isRegister" style="display: flex; align-items: center; justify-content: center; gap: 8rpx; margin-top: 20rpx;">
+        <checkbox :checked="agreePrivacy" @tap="agreePrivacy = !agreePrivacy" style="transform: scale(0.7);" />
+        <text style="font-size: 22rpx; color: #b8929e;">我已阅读并同意</text>
+        <text style="font-size: 22rpx; color: #f472b6;" @tap="uni.navigateTo({url:'/pages/privacy/index'})">《隐私政策》</text>
+      </view>
+
       <view style="display: flex; justify-content: center; gap: 8rpx; margin-top: 28rpx;">
         <text style="font-size: 24rpx; color: #b8929e;">{{ isRegister ? '已有账号？' : '还没有账号？' }}</text>
         <text style="font-size: 24rpx; color: #f472b6;" @tap="isRegister = !isRegister">{{ isRegister ? '去登录' : '立即注册' }}</text>
@@ -47,6 +53,7 @@ import { useUserStore } from '@/stores/user'
 const userStore = useUserStore()
 const loading = ref(false)
 const isRegister = ref(false)
+const agreePrivacy = ref(false)
 const form = reactive({ phone: '', password: '', nickname: '' })
 
 async function handleSubmit() {
@@ -55,6 +62,9 @@ async function handleSubmit() {
   }
   if (!form.password || form.password.length < 6) {
     return uni.showToast({ title: '密码至少6位', icon: 'none' })
+  }
+  if (isRegister.value && !agreePrivacy.value) {
+    return uni.showToast({ title: '请先同意隐私政策', icon: 'none' })
   }
   loading.value = true
   try {
