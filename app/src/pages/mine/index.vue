@@ -48,7 +48,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 
 const isLoggedIn = ref(false)
 const nickname = ref('')
@@ -80,9 +81,7 @@ function doLogout() {
   })
 }
 
-onMounted(checkLogin)
-// 每次显示时刷新状态
-uni.$on('pageShow', checkLogin)
+onShow(checkLogin)
 </script>
 
 <style scoped>
