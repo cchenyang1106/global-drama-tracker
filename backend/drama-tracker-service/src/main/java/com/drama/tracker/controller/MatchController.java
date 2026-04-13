@@ -298,7 +298,9 @@ public class MatchController {
         attachUserInfo(partner, "partner", otherUserId);
         UserProfile otherProfile = profileMapper.selectOne(
                 new LambdaQueryWrapper<UserProfile>().eq(UserProfile::getUserId, otherUserId));
-        if (otherProfile != null) partner.put("partnerWechat", otherProfile.getWechat());
+        if (otherProfile != null && otherProfile.getShowWechat() != null && otherProfile.getShowWechat() == 1) {
+            partner.put("partnerWechat", otherProfile.getWechat());
+        }
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("messages", messages);
@@ -337,5 +339,25 @@ public class MatchController {
         m.put("status", mr.getStatus());
         m.put("createTime", mr.getCreateTime());
         return m;
+    }
+
+    /**
+     * 标记活动组队完成（发布者操作）。
+     */
+    @Operation(summary = "组队完成")
+    @PostMapping("/team-complete/{activityId}")
+    public Result<?> teamComplete(@RequestHeader(value = "Authorization", required = false) String auth,
+                                  @PathVariable Long activityId) {
+        Long userId = getUserIdFromToken(auth);
+        if (userId == null) return Result.fail(401, "请先登录");
+
+        Activity activity = activityMapper.selectById(activityId);
+        if (activity == null) return Result.fail(404, "活动不存在");
+        if (!activity.getUserId().equals(userId)) return Result.fail(403, "只有发布者可以操作");
+
+        activity.setTeamComplete(1);
+        activity.setStatus(2); // 已满员/已完成
+        activityMapper.updateById(activity);
+        return Result.success("组队完成！活动已关闭申请");
     }
 }

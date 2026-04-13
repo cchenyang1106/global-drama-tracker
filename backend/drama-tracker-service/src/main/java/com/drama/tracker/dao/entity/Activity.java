@@ -20,9 +20,15 @@ public class Activity {
     private Integer maxPeople;
     private Integer joinedCount;
     private String tags;
+    private Integer preferGender;   // 偏好性别 0不限 1男 2女
+    private Integer preferAgeMin;
+    private Integer preferAgeMax;
+    private String preferCity;
+    private String preferTags;
     private String images;
     private Integer status;
     private Integer viewCount;
+    private Integer teamComplete;   // 0未完成 1已组队完成
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;

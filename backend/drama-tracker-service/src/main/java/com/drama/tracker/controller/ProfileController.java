@@ -68,7 +68,9 @@ public class ProfileController {
             data.put("occupation", profile.getOccupation());
             data.put("bio", profile.getBio());
             data.put("hobbies", profile.getHobbies());
+            data.put("tags", profile.getTags());
             data.put("wechat", profile.getWechat());
+            data.put("showWechat", profile.getShowWechat());
             data.put("photos", profile.getPhotos());
         }
         return Result.success(data);
@@ -101,6 +103,8 @@ public class ProfileController {
         if (body.containsKey("bio")) profile.setBio((String) body.get("bio"));
         if (body.containsKey("hobbies")) profile.setHobbies((String) body.get("hobbies"));
         if (body.containsKey("wechat")) profile.setWechat((String) body.get("wechat"));
+        if (body.containsKey("showWechat")) profile.setShowWechat(body.get("showWechat") != null ? Integer.parseInt(body.get("showWechat").toString()) : 0);
+        if (body.containsKey("tags")) profile.setTags((String) body.get("tags"));
         if (body.containsKey("photos")) profile.setPhotos((String) body.get("photos"));
 
         // 同步昵称到 user 表

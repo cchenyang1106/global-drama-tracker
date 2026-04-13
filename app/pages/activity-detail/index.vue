@@ -27,24 +27,32 @@
     </view>
 
     <!-- 申请区 -->
-    <view class="card" v-if="canApply">
-      <text class="section-title">想参加？发送申请吧！</text>
-      <textarea v-model="applyMsg" placeholder="写一句话介绍自己..." maxlength="200"
+    <!-- 已组队完成提示 -->
+    <view class="card status-card" v-if="activity.teamComplete === 1">
+      <text style="color:#059669;font-weight:700;">✅ 该活动已组队完成</text>
+    </view>
+
+    <!-- 申请区 -->
+    <view class="card" v-else-if="canApply">
+      <text class="section-title">感兴趣？申请和发起人聊聊</text>
+      <text style="font-size:24rpx;color:#b8929e;display:block;margin-bottom:16rpx;">点击申请后，发起人会收到通知，同意后你们可以开始沟通活动细节</text>
+      <textarea v-model="applyMsg" placeholder="跟发起人打个招呼，说说你为什么想参加..." maxlength="200"
         style="width:100%;height:120rpx;background:#fff5f7;border:1px solid #fce4ec;border-radius:12rpx;padding:16rpx;font-size:28rpx;color:#4a2040;box-sizing:border-box;" />
-      <button class="btn-primary" @click="doApply" :disabled="applying">{{ applying ? '提交中...' : '申请加入' }}</button>
+      <button class="btn-primary" @tap="doApply" :disabled="applying">{{ applying ? '提交中...' : '申请沟通' }}</button>
     </view>
     <view class="card status-card" v-else-if="!isLoggedIn">
-      <text @click="uni.navigateTo({url:'/pages/login/index'})" style="color:#f472b6;font-weight:600;">登录后申请加入 →</text>
+      <text @tap="goTo('/pages/login/index')" style="color:#f472b6;font-weight:600;">登录后申请参与 →</text>
     </view>
     <view class="card status-card" v-else-if="isOwner">
       <text style="color:#b8929e;">这是你发布的活动</text>
+      <button v-if="activity.teamComplete !== 1 && activity.status === 1" class="btn-primary" style="margin-top:16rpx;" @tap="doTeamComplete">标记为组队完成</button>
     </view>
     <view class="card status-card" v-else-if="applyStatus === 0">
-      <text style="color:#d97706;">⏳ 已申请，等待对方确认</text>
+      <text style="color:#d97706;">⏳ 已申请，等待发起人确认</text>
     </view>
     <view class="card status-card" v-else-if="applyStatus === 1">
       <text style="color:#059669;font-weight:700;font-size:32rpx;">🎉 组队成功！</text>
-      <button class="btn-primary" style="margin-top:16rpx;" @click="uni.navigateTo({url:`/pages/chat/index?matchId=${matchId}`})">去聊天 →</button>
+      <button class="btn-primary" style="margin-top:16rpx;" @tap="goChat">去聊天 →</button>
     </view>
     <view class="card status-card" v-else-if="applyStatus === 2">
       <text style="color:#e11d48;">❌ 申请已被拒绝</text>
@@ -143,6 +151,26 @@ const isOwner = computed(() => activity.value && currentUserId && activity.value
 const canApply = computed(() => isLoggedIn.value && !isOwner.value && applyStatus.value === -1 && activity.value?.status === 1)
 
 function goUser(id) { uni.navigateTo({ url: `/pages/profile/index?userId=${id}` }) }
+function goTo(url) { uni.navigateTo({ url }) }
+function goChat() {
+  if (matchId.value) uni.navigateTo({ url: `/pages/chat/index?matchId=${matchId.value}` })
+  else uni.showToast({ title: '聊天信息加载中', icon: 'none' })
+}
+async function doTeamComplete() {
+  uni.showModal({
+    title: '确认组队完成？', content: '标记后活动将不再接受新的申请',
+    success: async (res) => {
+      if (res.confirm) {
+        try {
+          await request({ url: `/match/team-complete/${activityId}`, method: 'POST', needAuth: true })
+          uni.showToast({ title: '已标记完成', icon: 'success' })
+          activity.value.teamComplete = 1
+          activity.value.status = 2
+        } catch (e) { uni.showToast({ title: e?.message || '操作失败', icon: 'none' }) }
+      }
+    }
+  })
+}
 
 function formatTime(t) {
   if (!t) return ''

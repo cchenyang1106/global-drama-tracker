@@ -101,6 +101,30 @@ public class UserAuthController {
         return Result.success(buildTokenResult(user));
     }
 
+    /**
+     * 重置密码（通过手机号）。
+     */
+    @Operation(summary = "重置密码")
+    @PostMapping("/reset-password")
+    public Result<?> resetPassword(@RequestBody Map<String, String> body) {
+        String phone = body.get("phone");
+        String newPassword = body.get("newPassword");
+
+        if (phone == null || !phone.matches("^1[3-9]\\d{9}$")) {
+            return Result.fail("请输入正确的手机号");
+        }
+        if (newPassword == null || newPassword.length() < 6) {
+            return Result.fail("新密码至少6位");
+        }
+
+        User user = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, phone));
+        if (user == null) return Result.fail("该手机号未注册");
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userMapper.updateById(user);
+        return Result.success("密码重置成功，请用新密码登录");
+    }
+
     @Operation(summary = "获取当前用户信息")
     @GetMapping("/me")
     public Result<Map<String, Object>> getMe(@RequestHeader(value = "Authorization", required = false) String authHeader) {

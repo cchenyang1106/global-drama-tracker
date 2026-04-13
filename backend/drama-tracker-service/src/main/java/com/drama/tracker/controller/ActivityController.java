@@ -144,10 +144,16 @@ public class ActivityController {
         a.setActivityTime((String) body.get("activityTime"));
         a.setMaxPeople(body.get("maxPeople") != null ? Integer.parseInt(body.get("maxPeople").toString()) : 1);
         a.setTags((String) body.get("tags"));
+        a.setPreferGender(body.get("preferGender") != null ? Integer.parseInt(body.get("preferGender").toString()) : 0);
+        a.setPreferAgeMin(body.get("preferAgeMin") != null ? Integer.parseInt(body.get("preferAgeMin").toString()) : null);
+        a.setPreferAgeMax(body.get("preferAgeMax") != null ? Integer.parseInt(body.get("preferAgeMax").toString()) : null);
+        a.setPreferCity((String) body.get("preferCity"));
+        a.setPreferTags((String) body.get("preferTags"));
         a.setImages((String) body.get("images"));
         a.setStatus(1);
         a.setJoinedCount(0);
         a.setViewCount(0);
+        a.setTeamComplete(0);
         activityMapper.insert(a);
         return Result.success(a.getId());
     }

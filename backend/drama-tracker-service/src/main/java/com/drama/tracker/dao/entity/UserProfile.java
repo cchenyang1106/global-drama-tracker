@@ -20,7 +20,9 @@ public class UserProfile {
     private String occupation;
     private String bio;
     private String hobbies;
+    private String tags;        // 个人标签(逗号分隔)
     private String wechat;
+    private Integer showWechat; // 0不公开 1公开
     private String photos;
 
     @TableField(fill = FieldFill.INSERT)
