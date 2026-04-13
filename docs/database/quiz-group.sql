@@ -56,3 +56,6 @@ CREATE TABLE IF NOT EXISTS group_message (
     INDEX idx_group (group_id),
     INDEX idx_create_time (create_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='群消息表';
+
+-- 群成员表添加已读时间字段（用于计算未读消息数）
+ALTER TABLE group_member_info ADD COLUMN IF NOT EXISTS last_read_time DATETIME DEFAULT NULL COMMENT '最后已读时间' AFTER role;

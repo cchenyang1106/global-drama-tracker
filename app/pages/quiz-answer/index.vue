@@ -3,6 +3,24 @@
     <text class="title">📋 答题</text>
     <text class="hint">认真回答以下问题，发布人会根据你的答案决定是否通过</text>
 
+    <!-- 流程进度提示 -->
+    <view class="flow-bar">
+      <view class="flow-step active">
+        <text class="flow-dot">1</text>
+        <text class="flow-label">答题中</text>
+      </view>
+      <view class="flow-line"></view>
+      <view class="flow-step">
+        <text class="flow-dot">2</text>
+        <text class="flow-label">等待批改</text>
+      </view>
+      <view class="flow-line"></view>
+      <view class="flow-step">
+        <text class="flow-dot">3</text>
+        <text class="flow-label">通过拉群</text>
+      </view>
+    </view>
+
     <view v-for="(q, i) in quizzes" :key="q.id" class="card">
       <text class="q-num">题目 {{ i + 1 }}</text>
       <text class="q-text">{{ q.questionText }}</text>
@@ -21,9 +39,12 @@
 
     <view v-if="quizzes.length === 0" class="empty">发布人还没有出题</view>
 
-    <button v-if="quizzes.length > 0" class="btn-primary" @tap="submit" :disabled="submitting">
-      {{ submitting ? '提交中...' : '提交答卷' }}
-    </button>
+    <view v-if="quizzes.length > 0" class="submit-area">
+      <text class="submit-tip">💡 提交后发布人会查看你的答卷，通过后你将自动加入活动群聊</text>
+      <button class="btn-primary" @tap="submit" :disabled="submitting">
+        {{ submitting ? '提交中...' : '提交答卷' }}
+      </button>
+    </view>
   </view>
 </template>
 
@@ -88,7 +109,14 @@ onLoad(async (options) => {
 <style scoped>
 .page { padding: 20rpx; }
 .title { display: block; font-size: 36rpx; font-weight: 800; color: #4a2040; text-align: center; margin-bottom: 8rpx; }
-.hint { display: block; font-size: 24rpx; color: #b8929e; text-align: center; margin-bottom: 24rpx; }
+.hint { display: block; font-size: 24rpx; color: #b8929e; text-align: center; margin-bottom: 20rpx; }
+.flow-bar { display: flex; align-items: center; justify-content: center; padding: 20rpx 24rpx; background: linear-gradient(135deg, #fef3f8, #f0e6ff); border-radius: 20rpx; margin-bottom: 20rpx; }
+.flow-step { display: flex; flex-direction: column; align-items: center; gap: 6rpx; }
+.flow-dot { width: 40rpx; height: 40rpx; border-radius: 50%; background: #e8d0e8; color: #fff; font-size: 22rpx; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.flow-step.active .flow-dot { background: #f472b6; }
+.flow-label { font-size: 22rpx; color: #b8929e; }
+.flow-step.active .flow-label { color: #f472b6; font-weight: 700; }
+.flow-line { width: 60rpx; height: 4rpx; background: #e8d0e8; margin: 0 8rpx; margin-bottom: 28rpx; }
 .card { background: #fff; border-radius: 20rpx; padding: 24rpx; margin-bottom: 16rpx; border: 1px solid #fce4ec; }
 .q-num { font-size: 26rpx; font-weight: 700; color: #f472b6; display: block; margin-bottom: 8rpx; }
 .q-text { font-size: 28rpx; color: #4a2040; line-height: 1.6; display: block; margin-bottom: 12rpx; }
@@ -98,5 +126,7 @@ onLoad(async (options) => {
 .thumb { width: 150rpx; height: 150rpx; border-radius: 12rpx; }
 .add-img { width: 150rpx; height: 150rpx; border: 2rpx dashed #fce4ec; border-radius: 12rpx; display: flex; align-items: center; justify-content: center; color: #b8929e; font-size: 24rpx; }
 .empty { text-align: center; padding: 60rpx; color: #b8929e; }
-.btn-primary { margin-top: 16rpx; background: linear-gradient(135deg, #f472b6, #c084fc); color: #fff; border: none; border-radius: 40rpx; font-size: 30rpx; font-weight: 700; }
+.submit-area { margin-top: 8rpx; }
+.submit-tip { display: block; font-size: 22rpx; color: #c084fc; text-align: center; margin-bottom: 16rpx; padding: 12rpx 16rpx; background: #faf5ff; border-radius: 12rpx; border: 1px dashed #e8d0f0; }
+.btn-primary { background: linear-gradient(135deg, #f472b6, #c084fc); color: #fff; border: none; border-radius: 40rpx; font-size: 30rpx; font-weight: 700; }
 </style>

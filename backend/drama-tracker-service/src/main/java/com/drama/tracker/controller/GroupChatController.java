@@ -63,6 +63,15 @@ public class GroupChatController {
                 item.put("lastMessage", (sender != null ? sender.getNickname() + ": " : "") + last.getContent());
                 item.put("lastTime", last.getCreateTime());
             }
+            // 未读消息数
+            LambdaQueryWrapper<GroupMessage> unreadWrapper = new LambdaQueryWrapper<GroupMessage>()
+                    .eq(GroupMessage::getGroupId, group.getId())
+                    .ne(GroupMessage::getUserId, userId);
+            if (m.getLastReadTime() != null) {
+                unreadWrapper.gt(GroupMessage::getCreateTime, m.getLastReadTime());
+            }
+            Long unread = messageMapper.selectCount(unreadWrapper);
+            item.put("unreadCount", unread);
             result.add(item);
         }
         // 按最新消息时间排序
@@ -87,9 +96,13 @@ public class GroupChatController {
         if (userId == null) return Result.fail(401, "请先登录");
 
         // 验证是否是群成员
-        Long isMember = memberMapper.selectCount(new LambdaQueryWrapper<GroupMemberInfo>()
+        GroupMemberInfo member = memberMapper.selectOne(new LambdaQueryWrapper<GroupMemberInfo>()
                 .eq(GroupMemberInfo::getGroupId, groupId).eq(GroupMemberInfo::getUserId, userId));
-        if (isMember == 0) return Result.fail(403, "你不是该群成员");
+        if (member == null) return Result.fail(403, "你不是该群成员");
+
+        // 更新已读时间
+        member.setLastReadTime(LocalDateTime.now());
+        memberMapper.updateById(member);
 
         Page<GroupMessage> p = messageMapper.selectPage(new Page<>(page, size),
                 new LambdaQueryWrapper<GroupMessage>().eq(GroupMessage::getGroupId, groupId)

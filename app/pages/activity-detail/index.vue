@@ -32,11 +32,21 @@
       <text style="color:#059669;font-weight:700;">✅ 该活动已组队完成</text>
     </view>
 
-    <!-- 申请区 -->
+    <!-- 申请区：可以申请 -->
     <view class="card" v-else-if="canApply">
       <text class="section-title">感兴趣？先答题申请</text>
+      <!-- 流程提示 -->
+      <view class="flow-hint">
+        <view class="flow-step"><text class="flow-icon">📝</text><text class="flow-text">答题</text></view>
+        <text class="flow-arrow">→</text>
+        <view class="flow-step"><text class="flow-icon">⏳</text><text class="flow-text">等待批改</text></view>
+        <text class="flow-arrow">→</text>
+        <view class="flow-step"><text class="flow-icon">✅</text><text class="flow-text">通过</text></view>
+        <text class="flow-arrow">→</text>
+        <view class="flow-step"><text class="flow-icon">💬</text><text class="flow-text">自动拉群</text></view>
+      </view>
       <text style="font-size:24rpx;color:#b8929e;display:block;margin-bottom:16rpx;">
-        发布人设置了 {{ activity.quizCount || 0 }} 道题目，回答后等待批改，通过即自动组队
+        发布人设置了 {{ activity.quizCount || 0 }} 道题目，回答后等待批改，通过即自动组队拉群
       </text>
       <button v-if="activity.quizCount > 0" class="btn-primary" @tap="goTo(`/pages/quiz-answer/index?activityId=${activity.id}`)">开始答题</button>
       <text v-else style="color:#b8929e;font-size:24rpx;display:block;text-align:center;">发布人还没出题，请稍后再来</text>
@@ -53,54 +63,30 @@
         <button v-if="activity.teamComplete === 1" class="btn-danger-outline" @tap="doDeleteActivity">🗑 删除此活动</button>
       </view>
     </view>
+    <!-- 等待批改 -->
     <view class="card status-card" v-else-if="applyStatus === 0">
-      <text style="color:#d97706;">⏳ 已提交答卷，等待发布人批改</text>
+      <text style="color:#d97706;font-weight:700;font-size:30rpx;">⏳ 已提交答卷，等待发布人批改</text>
+      <view class="status-flow-hint">
+        <text class="status-step done">📝 答题 ✓</text>
+        <text class="status-step current">⏳ 等待批改</text>
+        <text class="status-step">✅ 通过拉群</text>
+      </view>
+      <text style="font-size:24rpx;color:#b8929e;display:block;margin-top:12rpx;">发布人批改后你会收到结果通知，通过后将自动加入群聊</text>
     </view>
+    <!-- 组队成功 -->
     <view class="card status-card" v-else-if="applyStatus === 1">
       <text style="color:#059669;font-weight:700;font-size:32rpx;">🎉 组队成功！已加入群聊</text>
-      <text style="font-size:24rpx;color:#b8929e;display:block;margin-top:8rpx;">去"消息-群聊"查看</text>
+      <view class="status-flow-hint">
+        <text class="status-step done">📝 答题 ✓</text>
+        <text class="status-step done">✅ 已通过 ✓</text>
+        <text class="status-step done">💬 已拉群 ✓</text>
+      </view>
+      <text style="font-size:24rpx;color:#059669;display:block;margin-top:12rpx;">去「消息 → 群聊」和搭子们沟通活动细节吧！</text>
     </view>
+    <!-- 未通过 -->
     <view class="card status-card" v-else-if="applyStatus === 2">
-      <text style="color:#e11d48;">❌ 答卷未通过</text>
-    </view>
-
-    <!-- 评论区 -->
-    <view class="card">
-      <text class="section-title">💬 评论区 ({{ commentTotal }})</text>
-
-      <view v-if="isLoggedIn" style="margin-bottom:20rpx;">
-        <textarea v-model="commentText" :placeholder="replyTo ? `回复 ${replyTo.authorName}...` : '说点什么...'" maxlength="300"
-          style="width:100%;height:120rpx;background:#fff5f7;border:1px solid #fce4ec;border-radius:12rpx;padding:16rpx;font-size:28rpx;color:#4a2040;box-sizing:border-box;" />
-        <view style="display:flex;justify-content:space-between;align-items:center;margin-top:8rpx;">
-          <text v-if="replyTo" style="font-size:24rpx;color:#f472b6;" @click="replyTo = null">回复 {{ replyTo.authorName }} ✕取消</text>
-          <text v-else></text>
-          <button class="btn-small" @click="submitComment" :disabled="!commentText.trim()">发表</button>
-        </view>
-      </view>
-
-      <view v-if="comments.length === 0" style="text-align:center;padding:40rpx;color:#b8929e;font-size:26rpx;">暂无评论，来说两句吧~</view>
-
-      <view v-for="c in comments" :key="c.id" :style="c.pinned ? 'background:#fff0f5;margin:0 -20rpx;padding:16rpx 20rpx;border-radius:12rpx;' : ''"
-        style="padding:16rpx 0;border-top:1px solid #fce4ec;">
-        <view style="display:flex;align-items:center;gap:12rpx;margin-bottom:8rpx;">
-          <view class="avatar-sm">{{ (c.authorName || '?').charAt(0) }}</view>
-          <text style="font-weight:600;font-size:26rpx;color:#7c3a5e;" @click="goUser(c.userId)">{{ c.authorName }}</text>
-          <text v-if="c.pinned" style="font-size:22rpx;color:#d97706;background:#fef3c7;padding:2rpx 10rpx;border-radius:20rpx;">置顶</text>
-          <text v-if="c.replyToName" style="font-size:22rpx;color:#b8929e;">回复 {{ c.replyToName }}</text>
-          <text style="font-size:22rpx;color:#b8929e;margin-left:auto;">{{ formatTime(c.createTime) }}</text>
-        </view>
-        <text style="font-size:28rpx;color:#4a2040;line-height:1.6;">{{ c.content }}</text>
-        <view style="display:flex;gap:16rpx;margin-top:8rpx;">
-          <text class="action-text" @click="setReply(c)">回复</text>
-          <text v-if="isOwner" class="action-text" @click="togglePin(c)">{{ c.pinned ? '取消置顶' : '置顶' }}</text>
-          <text v-if="isOwner" class="action-text" style="color:#e11d48;" @click="doHideComment(c.id)">隐藏</text>
-          <text v-if="c.userId == currentUserId" class="action-text" style="color:#e11d48;" @click="doDeleteComment(c.id)">删除</text>
-        </view>
-      </view>
-
-      <view v-if="hasMoreComments" style="text-align:center;padding:16rpx;">
-        <text style="color:#f472b6;font-size:26rpx;" @click="loadMoreComments">加载更多...</text>
-      </view>
+      <text style="color:#e11d48;font-weight:700;">❌ 答卷未通过</text>
+      <text style="font-size:24rpx;color:#b8929e;display:block;margin-top:8rpx;">没关系，去看看其他活动吧，总有合适的搭子在等你~</text>
     </view>
 
     <!-- 举报弹窗（居中遮罩层） -->
@@ -126,7 +112,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { onLoad } from '@dcloudio/uni-app'
+import { onLoad, onShow } from '@dcloudio/uni-app'
 import { getActivityDetail } from '@/api/activity'
 import { applyActivity, getSentRequests } from '@/api/match'
 import { request } from '@/api/request'
@@ -137,14 +123,6 @@ const applying = ref(false)
 const applyStatus = ref(-1)
 const matchId = ref(null)
 let activityId = null
-
-// 评论
-const comments = ref([])
-const commentText = ref('')
-const commentTotal = ref(0)
-const commentPage = ref(1)
-const hasMoreComments = ref(false)
-const replyTo = ref(null)
 
 // 举报
 const showReport = ref(false)
@@ -195,15 +173,6 @@ async function doDeleteActivity() {
   })
 }
 
-function formatTime(t) {
-  if (!t) return ''
-  const d = new Date(t.replace('T', ' ').replace(/-/g, '/'))
-  if (isNaN(d.getTime())) return ''
-  const now = new Date()
-  if (d.toDateString() === now.toDateString()) return d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
-  return `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`
-}
-
 async function doApply() {
   applying.value = true
   try {
@@ -212,44 +181,6 @@ async function doApply() {
     applyStatus.value = 0
   } catch (e) { uni.showToast({ title: e?.message || '申请失败', icon: 'none' }) }
   applying.value = false
-}
-
-// 评论
-async function loadComments(append = false) {
-  if (!append) commentPage.value = 1
-  try {
-    const data = await request({ url: `/activity-comment/list/${activityId}?page=${commentPage.value}&size=20` })
-    const records = data?.records || []
-    if (append) comments.value.push(...records)
-    else comments.value = records
-    commentTotal.value = data?.total || 0
-    hasMoreComments.value = comments.value.length < commentTotal.value
-  } catch {}
-}
-function loadMoreComments() { commentPage.value++; loadComments(true) }
-function setReply(c) { replyTo.value = c; commentText.value = '' }
-
-async function submitComment() {
-  if (!commentText.value.trim()) return
-  try {
-    await request({ url: '/activity-comment/add', method: 'POST', needAuth: true,
-      data: { activityId: Number(activityId), content: commentText.value, parentId: replyTo.value?.id || null } })
-    uni.showToast({ title: '评论成功', icon: 'success' })
-    commentText.value = ''; replyTo.value = null; loadComments()
-  } catch (e) { uni.showToast({ title: e?.message || '评论失败', icon: 'none' }) }
-}
-
-async function togglePin(c) {
-  try {
-    await request({ url: `/activity-comment/pin/${c.id}?pinned=${c.pinned ? 0 : 1}`, method: 'POST', needAuth: true })
-    loadComments()
-  } catch {}
-}
-async function doHideComment(id) {
-  try { await request({ url: `/activity-comment/hide/${id}`, method: 'POST', needAuth: true }); loadComments() } catch {}
-}
-async function doDeleteComment(id) {
-  try { await request({ url: `/activity-comment/${id}`, method: 'DELETE', needAuth: true }); loadComments() } catch {}
 }
 
 // 举报
@@ -262,10 +193,10 @@ async function submitReport() {
   } catch (e) { uni.showToast({ title: e?.message || '提交失败', icon: 'none' }) }
 }
 
-onLoad(async (options) => {
-  activityId = options?.id
-  if (activityId) activity.value = await getActivityDetail(activityId)
-  loadComments()
+// 加载/刷新活动详情和申请状态
+async function refreshData() {
+  if (!activityId) return
+  try { activity.value = await getActivityDetail(activityId) } catch {}
   if (isLoggedIn.value) {
     try {
       const sent = await getSentRequests()
@@ -273,7 +204,10 @@ onLoad(async (options) => {
       if (myReq) { applyStatus.value = myReq.status; matchId.value = myReq.id }
     } catch {}
   }
-})
+}
+
+onLoad((options) => { activityId = options?.id })
+onShow(() => { refreshData() })
 </script>
 
 <style scoped>
@@ -294,11 +228,18 @@ onLoad(async (options) => {
 .info-label { color: #b8929e; }
 .section-title { font-size: 30rpx; font-weight: 700; color: #4a2040; display: block; margin-bottom: 16rpx; }
 .status-card { text-align: center; padding: 32rpx; }
-.action-text { font-size: 24rpx; color: #f472b6; }
+.flow-hint { display: flex; align-items: center; justify-content: center; gap: 8rpx; margin-bottom: 16rpx; padding: 16rpx; background: linear-gradient(135deg, #fef3f8, #f0e6ff); border-radius: 16rpx; }
+.flow-step { display: flex; flex-direction: column; align-items: center; gap: 4rpx; }
+.flow-icon { font-size: 32rpx; }
+.flow-text { font-size: 20rpx; color: #7c5270; font-weight: 600; }
+.flow-arrow { font-size: 24rpx; color: #c084fc; font-weight: 700; }
+.status-flow-hint { display: flex; align-items: center; justify-content: center; gap: 12rpx; margin-top: 16rpx; padding: 12rpx 16rpx; background: #fef9f0; border-radius: 12rpx; }
+.status-step { font-size: 22rpx; color: #b8929e; padding: 6rpx 16rpx; border-radius: 20rpx; background: #f5f0f2; }
+.status-step.done { color: #059669; background: #ecfdf5; }
+.status-step.current { color: #d97706; background: #fef3c7; font-weight: 700; }
 .btn-primary { margin-top: 0; background: linear-gradient(135deg, #f472b6, #c084fc); color: #fff; border: none; border-radius: 40rpx; font-size: 28rpx; font-weight: 600; padding: 16rpx 0; }
 .btn-outline { background: #fff; color: #f472b6; border: 2px solid #fce4ec; border-radius: 40rpx; font-size: 28rpx; }
 .btn-danger-outline { background: #fff; color: #e11d48; border: 2px solid #fecdd3; border-radius: 40rpx; font-size: 28rpx; }
-.btn-small { background: linear-gradient(135deg, #f472b6, #c084fc); color: #fff; border: none; border-radius: 20rpx; font-size: 24rpx; padding: 8rpx 24rpx; line-height: 1.4; }
 .btn-cancel { flex: 1; background: #f5f5f5; color: #666; border: none; border-radius: 40rpx; font-size: 28rpx; }
 .btn-danger { flex: 1; background: #e11d48; color: #fff; border: none; border-radius: 40rpx; font-size: 28rpx; }
 

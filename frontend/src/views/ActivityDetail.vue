@@ -157,7 +157,7 @@ const canApply = computed(() => {
 })
 
 function catColor(cat) {
-  const map = { '旅游': 'success', '运动': 'warning', '美食': 'danger', '电影': '', '学习': 'info' }
+  const map = { '旅游': 'success', '运动': 'warning', '美食': 'danger', '电影': '', '学习': 'info', '追星': 'warning' }
   return map[cat] || 'info'
 }
 

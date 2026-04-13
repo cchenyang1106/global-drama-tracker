@@ -1,8 +1,8 @@
 <template>
   <view class="page">
     <view class="tabs">
-      <text :class="['tab', tab === 'groups' && 'active']" @tap="tab = 'groups'">群聊</text>
-      <text :class="['tab', tab === 'received' && 'active']" @tap="tab = 'received'">收到的申请</text>
+      <text :class="['tab', tab === 'groups' && 'active']" @tap="tab = 'groups'">群聊{{ groupUnreadTotal > 0 ? ` (${groupUnreadTotal})` : '' }}</text>
+      <text :class="['tab', tab === 'received' && 'active']" @tap="tab = 'received'">收到的申请{{ pendingCount > 0 ? ` (${pendingCount})` : '' }}</text>
       <text :class="['tab', tab === 'sent' && 'active']" @tap="tab = 'sent'">我的申请</text>
     </view>
 
@@ -10,7 +10,10 @@
     <view v-if="tab === 'groups'">
       <view v-if="groups.length === 0" class="empty">暂无群聊，参与活动组队后自动创建</view>
       <view v-for="g in groups" :key="g.groupId" class="chat-item" @tap="goGroup(g.groupId)">
-        <view class="avatar-circle">{{ (g.name || '?').charAt(0) }}</view>
+        <view class="avatar-wrap">
+          <view class="avatar-circle">{{ (g.name || '?').charAt(0) }}</view>
+          <text v-if="g.unreadCount > 0" class="badge">{{ g.unreadCount > 99 ? '99+' : g.unreadCount }}</text>
+        </view>
         <view style="flex:1;min-width:0;">
           <view class="chat-top">
             <text class="chat-name">{{ g.name }}</text>
@@ -32,10 +35,9 @@
             <text class="req-sub">申请参与：{{ r.activityTitle }}</text>
           </view>
         </view>
-        <text v-if="r.message" class="req-msg">"{{ r.message }}"</text>
         <text v-if="r.status === 0" class="status-yellow">⏳ 待批改答卷</text>
-        <text v-else-if="r.status === 1" class="status-green">已通过 ✅</text>
-        <text v-else class="status-gray">未通过</text>
+        <text v-else-if="r.status === 1" class="status-green">已通过 ✅ 已自动拉入群聊</text>
+        <text v-else-if="r.status === 2" class="status-red">❌ 未通过</text>
         <view v-if="r.status === 0" style="margin-top:12rpx;">
           <button class="btn-review" @tap="goReview(r.activityId)">去批改答卷 →</button>
         </view>
@@ -57,7 +59,7 @@
 </template>
 
 <script setup>
-import { ref, onUnmounted } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 import { onShow, onHide } from '@dcloudio/uni-app'
 import { getReceivedRequests, getSentRequests } from '@/api/match'
 import { getGroupList } from '@/api/group'
@@ -66,25 +68,32 @@ const tab = ref('groups')
 const groups = ref([])
 const received = ref([])
 const sent = ref([])
+const refreshing = ref(false)
 let pollTimer = null
+
+const groupUnreadTotal = computed(() => (groups.value || []).reduce((sum, g) => sum + (g.unreadCount || 0), 0))
+const pendingCount = computed(() => (received.value || []).filter(r => r.status === 0).length)
 
 function goGroup(groupId) { uni.navigateTo({ url: `/pages/group-chat/index?groupId=${groupId}` }) }
 function goReview(activityId) { uni.navigateTo({ url: `/pages/quiz-papers/index?activityId=${activityId}` }) }
 
 async function loadAll() {
-  try { groups.value = await getGroupList() || [] } catch {}
-  try { received.value = await getReceivedRequests() || [] } catch {}
-  try { sent.value = await getSentRequests() || [] } catch {}
+  refreshing.value = true
+  const [g, r, s] = await Promise.allSettled([getGroupList(), getReceivedRequests(), getSentRequests()])
+  groups.value = g.status === 'fulfilled' ? (g.value || []) : groups.value
+  received.value = r.status === 'fulfilled' ? (r.value || []) : received.value
+  sent.value = s.status === 'fulfilled' ? (s.value || []) : sent.value
   updateBadge()
+  refreshing.value = false
 }
 
 function updateBadge() {
-  const pending = (received.value || []).filter(r => r.status === 0).length
-  if (pending > 0) uni.setTabBarBadge({ index: 1, text: String(pending) })
+  const total = groupUnreadTotal.value + pendingCount.value
+  if (total > 0) uni.setTabBarBadge({ index: 1, text: String(total > 99 ? '99+' : total) })
   else uni.removeTabBarBadge({ index: 1 })
 }
 
-onShow(() => { loadAll(); pollTimer = setInterval(loadAll, 15000) })
+onShow(() => { loadAll(); pollTimer = setInterval(loadAll, 8000) })
 onHide(() => { if (pollTimer) { clearInterval(pollTimer); pollTimer = null } })
 onUnmounted(() => { if (pollTimer) { clearInterval(pollTimer); pollTimer = null } })
 </script>
@@ -96,7 +105,9 @@ onUnmounted(() => { if (pollTimer) { clearInterval(pollTimer); pollTimer = null 
 .tab.active { color: #ec4899; font-weight: 700; background: #fff0f5; }
 .empty { text-align: center; padding: 60rpx; color: #b8929e; font-size: 26rpx; }
 .chat-item { display: flex; gap: 16rpx; align-items: center; background: #fff; border-radius: 16rpx; padding: 24rpx; margin-bottom: 12rpx; border: 1px solid #fce4ec; }
-.avatar-circle { width: 80rpx; height: 80rpx; border-radius: 50%; background: linear-gradient(135deg,#f472b6,#c084fc); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 32rpx; font-weight: 700; flex-shrink: 0; }
+.avatar-wrap { position: relative; flex-shrink: 0; }
+.avatar-circle { width: 80rpx; height: 80rpx; border-radius: 50%; background: linear-gradient(135deg,#f472b6,#c084fc); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 32rpx; font-weight: 700; }
+.badge { position: absolute; top: -8rpx; right: -8rpx; min-width: 32rpx; height: 32rpx; line-height: 32rpx; text-align: center; background: #e11d48; color: #fff; font-size: 20rpx; font-weight: 700; border-radius: 32rpx; padding: 0 8rpx; }
 .avatar-sm { width: 60rpx; height: 60rpx; border-radius: 50%; background: #f9a8d4; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 24rpx; font-weight: 700; flex-shrink: 0; }
 .chat-top { display: flex; justify-content: space-between; align-items: center; }
 .chat-name { font-size: 28rpx; font-weight: 600; color: #4a2040; }
@@ -110,6 +121,6 @@ onUnmounted(() => { if (pollTimer) { clearInterval(pollTimer); pollTimer = null 
 .req-msg { font-size: 24rpx; color: #7c5270; font-style: italic; display: block; margin: 8rpx 0; }
 .status-green { color: #059669; font-size: 24rpx; font-weight: 600; }
 .status-yellow { color: #d97706; font-size: 24rpx; }
-.status-gray { color: #b8929e; font-size: 24rpx; }
+.status-red { color: #e11d48; font-size: 24rpx; font-weight: 600; }
 .btn-review { background: linear-gradient(135deg,#f472b6,#c084fc); color: #fff; border: none; border-radius: 40rpx; font-size: 26rpx; }
 </style>

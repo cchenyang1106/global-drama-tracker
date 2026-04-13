@@ -12,5 +12,6 @@ public class GroupMemberInfo {
     private Long groupId;
     private Long userId;
     private Integer role; // 0普通 1群主
+    private LocalDateTime lastReadTime;
     private LocalDateTime createTime;
 }

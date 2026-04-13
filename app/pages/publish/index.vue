@@ -1,5 +1,54 @@
 <template>
   <view class="page">
+    <!-- 流程规则提示 -->
+    <view v-if="showRules" class="rules-card">
+      <view class="rules-head">
+        <text class="rules-title">📋 发布活动流程说明</text>
+        <text class="rules-close" @tap="showRules = false">收起</text>
+      </view>
+      <view class="rules-steps">
+        <view class="step-item">
+          <text class="step-num">①</text>
+          <view class="step-content">
+            <text class="step-main">发布活动，设置人数</text>
+            <text class="step-desc">填写活动信息，设定需要的搭子人数</text>
+          </view>
+        </view>
+        <view class="step-item">
+          <text class="step-num">②</text>
+          <view class="step-content">
+            <text class="step-main">出题筛选搭子</text>
+            <text class="step-desc">发布后进入活动详情，设置题目（最多10题），用来了解申请人</text>
+          </view>
+        </view>
+        <view class="step-item">
+          <text class="step-num">③</text>
+          <view class="step-content">
+            <text class="step-main">申请人答题</text>
+            <text class="step-desc">感兴趣的人需回答你的题目才能申请加入</text>
+          </view>
+        </view>
+        <view class="step-item">
+          <text class="step-num">④</text>
+          <view class="step-content">
+            <text class="step-main">批改答卷，选择搭子</text>
+            <text class="step-desc">查看答卷，通过合适的人，不合适的可以拒绝</text>
+          </view>
+        </view>
+        <view class="step-item">
+          <text class="step-num">⑤</text>
+          <view class="step-content">
+            <text class="step-main">自动拉群，组队成功！</text>
+            <text class="step-desc">通过的搭子自动加入群聊，大家可以在群里沟通细节</text>
+          </view>
+        </view>
+      </view>
+      <text class="rules-tip">💡 人数满额后可标记"组队完成"，停止接收新申请</text>
+    </view>
+    <view v-else class="rules-collapsed" @tap="showRules = true">
+      <text class="rules-collapsed-text">📋 查看发布流程说明</text>
+    </view>
+
     <view class="card">
       <text class="form-title">发布活动</text>
 
@@ -77,9 +126,10 @@
 import { ref, reactive, onMounted } from 'vue'
 import { request } from '@/api/request'
 
-const categories = ['旅游', '运动', '美食', '学习', '游戏', '其他']
+const categories = ['旅游', '运动', '美食', '学习', '游戏', '追星', '其他']
 const submitting = ref(false)
 const hasDraft = ref(false)
+const showRules = ref(true)
 const form = reactive({
   title: '', category: '旅游', description: '', location: '', activityTime: '',
   maxPeople: '', tags: '', preferGender: 0, preferAgeMin: '', preferAgeMax: '',
@@ -129,6 +179,19 @@ onMounted(loadDraft)
 
 <style scoped>
 .page { padding: 20rpx; }
+.rules-card { background: linear-gradient(135deg, #fef3f8, #f0e6ff); border-radius: 24rpx; padding: 24rpx; margin-bottom: 20rpx; border: 1px solid #f0d0e8; }
+.rules-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; }
+.rules-title { font-size: 28rpx; font-weight: 800; color: #7c3a5e; }
+.rules-close { font-size: 24rpx; color: #c084fc; }
+.rules-steps { display: flex; flex-direction: column; gap: 16rpx; }
+.step-item { display: flex; align-items: flex-start; gap: 12rpx; }
+.step-num { font-size: 28rpx; font-weight: 800; color: #f472b6; min-width: 36rpx; line-height: 1.5; }
+.step-content { flex: 1; }
+.step-main { display: block; font-size: 26rpx; font-weight: 700; color: #4a2040; line-height: 1.5; }
+.step-desc { display: block; font-size: 22rpx; color: #9e7a8e; line-height: 1.5; margin-top: 2rpx; }
+.rules-tip { display: block; font-size: 22rpx; color: #c084fc; margin-top: 16rpx; padding-top: 12rpx; border-top: 1px dashed #e8d0f0; }
+.rules-collapsed { background: linear-gradient(135deg, #fef3f8, #f0e6ff); border-radius: 24rpx; padding: 20rpx; margin-bottom: 20rpx; text-align: center; border: 1px solid #f0d0e8; }
+.rules-collapsed-text { font-size: 26rpx; color: #7c3a5e; font-weight: 600; }
 .card { background: #fff; border-radius: 24rpx; padding: 32rpx; border: 1px solid #fce4ec; }
 .form-title { display: block; font-size: 36rpx; font-weight: 800; color: #f472b6; text-align: center; margin-bottom: 28rpx; }
 .sub-title { display: block; font-size: 28rpx; font-weight: 600; color: #7c3a5e; margin-bottom: 16rpx; }

@@ -35,7 +35,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { onLoad } from '@dcloudio/uni-app'
+import { onLoad, onShow } from '@dcloudio/uni-app'
 import { getPapers, gradePaper } from '@/api/quiz'
 
 const papers = ref([])
@@ -56,7 +56,20 @@ async function grade(userId, status) {
         try {
           await gradePaper(activityId, userId, { status })
           uni.showToast({ title: `已${action}`, icon: 'success' })
-          loadPapers()
+          await loadPapers()
+          // 如果全部批改完了，提示返回
+          const pending = papers.value.filter(p => p.status === 0).length
+          if (pending === 0 && papers.value.length > 0) {
+            setTimeout(() => {
+              uni.showModal({
+                title: '全部批改完成',
+                content: '所有答卷已处理完毕，是否返回？',
+                confirmText: '返回',
+                cancelText: '继续查看',
+                success: (r) => { if (r.confirm) uni.navigateBack() }
+              })
+            }, 500)
+          }
         } catch (e) { uni.showToast({ title: e?.message || '操作失败', icon: 'none' }) }
       }
     }
@@ -67,10 +80,8 @@ async function loadPapers() {
   try { papers.value = await getPapers(activityId) || [] } catch {}
 }
 
-onLoad((options) => {
-  activityId = options?.activityId
-  if (activityId) loadPapers()
-})
+onLoad((options) => { activityId = options?.activityId })
+onShow(() => { if (activityId) loadPapers() })
 </script>
 
 <style scoped>

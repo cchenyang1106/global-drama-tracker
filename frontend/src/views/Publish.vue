@@ -40,7 +40,7 @@ import { publishActivity } from '@/api/activity'
 
 const router = useRouter()
 const submitting = ref(false)
-const cats = ['旅游', '运动', '美食', '电影', '学习', '游戏', '其他']
+const cats = ['旅游', '运动', '美食', '电影', '学习', '游戏', '追星', '其他']
 const form = reactive({
   title: '', category: '运动', description: '', location: '',
   activityTime: '', maxPeople: 2, tags: '',

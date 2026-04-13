@@ -80,11 +80,12 @@ const categories = [
   { value: '电影', label: '电影', icon: '🎬' },
   { value: '学习', label: '学习', icon: '📚' },
   { value: '游戏', label: '游戏', icon: '🎮' },
+  { value: '追星', label: '追星', icon: '⭐' },
   { value: '其他', label: '其他', icon: '💡' },
 ]
 
 function catColor(cat) {
-  const map = { '旅游': 'success', '运动': 'warning', '美食': 'danger', '电影': '', '学习': 'info', '游戏': 'primary' }
+  const map = { '旅游': 'success', '运动': 'warning', '美食': 'danger', '电影': '', '学习': 'info', '游戏': 'primary', '追星': 'warning' }
   return map[cat] || 'info'
 }
 

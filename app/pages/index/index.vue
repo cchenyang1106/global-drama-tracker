@@ -42,7 +42,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { getActivities } from '@/api/activity'
-import { getChatList } from '@/api/match'
+import { getReceivedRequests } from '@/api/match'
+import { getGroupList } from '@/api/group'
 
 const keyword = ref('')
 const currentCat = ref('all')
@@ -56,6 +57,7 @@ const cats = [
   { value: '美食', label: '美食', icon: '🍔' },
   { value: '学习', label: '学习', icon: '📚' },
   { value: '游戏', label: '游戏', icon: '🎮' },
+  { value: '追星', label: '追星', icon: '⭐' },
   { value: '其他', label: '其他', icon: '💡' },
 ]
 
@@ -90,10 +92,12 @@ let unreadTimer = null
 async function checkUnread() {
   if (!uni.getStorageSync('token')) return
   try {
-    const chats = await getChatList()
-    const unread = (chats || []).reduce((sum, c) => sum + (c.unreadCount || 0), 0)
-    if (unread > 0) {
-      uni.setTabBarBadge({ index: 1, text: String(unread > 99 ? '99+' : unread) })
+    const [groups, received] = await Promise.all([getGroupList(), getReceivedRequests()])
+    const groupUnread = (groups || []).reduce((sum, g) => sum + (g.unreadCount || 0), 0)
+    const pending = (received || []).filter(r => r.status === 0).length
+    const total = groupUnread + pending
+    if (total > 0) {
+      uni.setTabBarBadge({ index: 1, text: String(total > 99 ? '99+' : total) })
     } else {
       uni.removeTabBarBadge({ index: 1 })
     }

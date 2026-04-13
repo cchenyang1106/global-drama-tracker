@@ -48,6 +48,13 @@ public class QuizController {
         Activity a = activityMapper.selectById(activityId);
         if (a == null || !a.getUserId().equals(userId)) return Result.fail(403, "只有发布者可以出题");
 
+        // 题目数量上限校验（最多10题）
+        Long existCount = quizMapper.selectCount(
+                new LambdaQueryWrapper<ActivityQuiz>().eq(ActivityQuiz::getActivityId, activityId));
+        if (body.get("id") == null && existCount >= 10) {
+            return Result.fail("每个活动最多只能设置10道题目");
+        }
+
         // 敏感词检查
         String text = (String) body.get("questionText");
         String bad = SensitiveWordFilter.detect(text);
