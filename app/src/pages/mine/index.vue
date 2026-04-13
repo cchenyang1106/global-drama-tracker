@@ -37,8 +37,8 @@
 
     <view v-if="!isLoggedIn" class="card" style="text-align:center;padding:60rpx;">
       <text style="font-size:40rpx;display:block;margin-bottom:20rpx;">🎯</text>
-      <text style="font-size:30rpx;font-weight:700;color:#4a2040;display:block;margin-bottom:12rpx;">找搭子</text>
-      <text style="font-size:26rpx;color:#b8929e;display:block;margin-bottom:32rpx;">登录后发布活动、匹配搭子</text>
+      <text style="font-size:30rpx;font-weight:700;color:#4a2040;display:block;margin-bottom:12rpx;">趣活组队</text>
+      <text style="font-size:26rpx;color:#b8929e;display:block;margin-bottom:32rpx;">登录后发布活动、参与活动</text>
       <button class="btn-primary" @click="uni.navigateTo({url:'/pages/login/index'})">登录 / 注册</button>
       <view style="margin-top:20rpx;">
         <text style="font-size:24rpx;color:#b8929e;" @click="uni.navigateTo({url:'/pages/privacy/index'})">🔒 隐私政策</text>

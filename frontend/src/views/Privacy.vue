@@ -11,7 +11,7 @@
           <li><strong>注册信息</strong>：手机号码（作为登录账号）、密码（加密存储）</li>
           <li><strong>个人资料</strong>：昵称、头像、年龄、性别、城市、职业、个人简介、兴趣爱好（均为自愿填写）</li>
           <li><strong>活动信息</strong>：您发布的活动内容、评论内容</li>
-          <li><strong>聊天记录</strong>：匹配成功后的聊天消息（AES-256 加密存储，30天后自动删除）</li>
+          <li><strong>聊天记录</strong>：组队成功后的活动沟通消息（AES-256 加密存储，30天后自动删除）</li>
           <li><strong>设备信息</strong>：IP 地址、浏览器类型、屏幕分辨率（用于访问统计）</li>
         </ul>
       </section>
@@ -19,7 +19,7 @@
       <section>
         <h2>二、信息使用方式</h2>
         <ul>
-          <li>提供活动匹配和社交聊天服务</li>
+          <li>提供活动组队和活动沟通服务</li>
           <li>展示您的公开个人资料给其他用户</li>
           <li>分析网站使用情况以优化产品体验</li>
           <li>处理用户举报和违规内容审核</li>
@@ -33,7 +33,7 @@
           <li><strong>聊天加密</strong>：所有聊天消息使用 AES-256-GCM 加密后存储</li>
           <li><strong>传输加密</strong>：全站使用 HTTPS 加密传输</li>
           <li><strong>手机号脱敏</strong>：对外展示时隐藏中间四位（如 138****1234）</li>
-          <li><strong>微信号保护</strong>：仅匹配成功后对双方可见</li>
+          <li><strong>微信号保护</strong>：仅组队成功后对双方可见</li>
           <li><strong>API 限流</strong>：防止恶意刷接口和数据爬取</li>
           <li><strong>定期清理</strong>：聊天记录保留 30 天后自动删除</li>
         </ul>

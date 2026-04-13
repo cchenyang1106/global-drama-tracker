@@ -23,7 +23,7 @@
         <el-input-number v-model="form.maxPeople" :min="1" :max="50" />
       </el-form-item>
       <el-form-item label="标签（逗号分隔）">
-        <el-input v-model="form.tags" placeholder="例如：户外,徒步,交友" />
+        <el-input v-model="form.tags" placeholder="例如：户外,徒步,周末" />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" size="large" :loading="submitting" @click="submit" style="width:100%">发布活动</el-button>

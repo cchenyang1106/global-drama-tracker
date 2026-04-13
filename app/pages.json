@@ -1,6 +1,6 @@
 {
   "pages": [
-    { "path": "pages/index/index", "style": { "navigationBarTitleText": "找搭子" } },
+    { "path": "pages/index/index", "style": { "navigationBarTitleText": "趣活组队" } },
     { "path": "pages/messages/index", "style": { "navigationBarTitleText": "消息" } },
     { "path": "pages/mine/index", "style": { "navigationBarTitleText": "我的" } },
     { "path": "pages/activity-detail/index", "style": { "navigationBarTitleText": "活动详情" } },
@@ -13,7 +13,7 @@
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "找搭子",
+    "navigationBarTitleText": "趣活组队",
     "navigationBarBackgroundColor": "#fff5f7",
     "backgroundColor": "#fff5f7",
     "backgroundTextStyle": "dark"

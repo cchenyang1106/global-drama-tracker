@@ -3,7 +3,7 @@
     <h2>消息中心</h2>
     <el-tabs v-model="activeTab" @tab-change="onTabChange">
       <el-tab-pane label="聊天" name="chats">
-        <div v-if="chats.length === 0" class="empty">暂无聊天，去活动广场找搭子吧！</div>
+        <div v-if="chats.length === 0" class="empty">暂无聊天，去活动广场趣活组队吧！</div>
         <div v-for="c in chats" :key="c.matchId" class="chat-item" @click="$router.push(`/chat/${c.matchId}`)">
           <el-avatar :size="44" :src="c.partnerAvatar" style="background:#f472b6">
             {{ (c.partnerName || '?').charAt(0) }}
@@ -57,7 +57,7 @@
           </div>
           <p v-if="s.message" class="req-msg">"{{ s.message }}"</p>
           <el-tag v-if="s.status === 0" type="warning" size="small">等待确认</el-tag>
-          <el-tag v-else-if="s.status === 1" type="success" size="small">已匹配 ✅</el-tag>
+          <el-tag v-else-if="s.status === 1" type="success" size="small">已组队 ✅</el-tag>
           <el-tag v-else type="info" size="small">已拒绝</el-tag>
         </div>
       </el-tab-pane>

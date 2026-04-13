@@ -37,7 +37,7 @@
       <el-form-item label="兴趣爱好（逗号分隔）">
         <el-input v-model="form.hobbies" placeholder="例如：旅游,摄影,健身,美食" />
       </el-form-item>
-      <el-form-item label="微信号（匹配成功后对方可见）">
+      <el-form-item label="微信号（组队成功后对方可见）">
         <el-input v-model="form.wechat" placeholder="你的微信号" />
       </el-form-item>
 

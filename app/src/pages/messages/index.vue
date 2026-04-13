@@ -51,7 +51,7 @@
         <text class="req-name">{{ s.activityTitle }}</text>
         <text v-if="s.message" class="req-msg">"{{ s.message }}"</text>
         <text v-if="s.status === 0" class="status-tag yellow">等待确认</text>
-        <text v-else-if="s.status === 1" class="status-tag green">已匹配 ✅</text>
+        <text v-else-if="s.status === 1" class="status-tag green">已组队 ✅</text>
         <text v-else class="status-tag gray">已拒绝</text>
       </view>
     </view>

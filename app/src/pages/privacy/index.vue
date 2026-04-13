@@ -9,11 +9,11 @@
       <text class="p">• 注册信息：手机号码（作为登录账号）、密码（加密存储）</text>
       <text class="p">• 个人资料：昵称、头像、年龄、性别、城市、职业、个人简介、兴趣爱好（均为自愿填写）</text>
       <text class="p">• 活动信息：您发布的活动内容、评论内容</text>
-      <text class="p">• 聊天记录：匹配成功后的聊天消息（AES-256 加密存储，30天后自动删除）</text>
+      <text class="p">• 聊天记录：组队成功后的活动沟通消息（AES-256 加密存储，30天后自动删除）</text>
       <text class="p">• 设备信息：IP 地址、浏览器类型（用于访问统计）</text>
 
       <text class="h2">二、信息使用方式</text>
-      <text class="p">• 提供活动匹配和社交聊天服务</text>
+      <text class="p">• 提供活动组队和活动沟通服务</text>
       <text class="p">• 展示您的公开个人资料给其他用户</text>
       <text class="p">• 分析使用情况以优化产品体验</text>
       <text class="p">• 处理用户举报和违规内容审核</text>
@@ -23,7 +23,7 @@
       <text class="p">• 聊天加密：所有聊天消息使用 AES-256-GCM 加密后存储</text>
       <text class="p">• 传输加密：全站使用 HTTPS 加密传输</text>
       <text class="p">• 手机号脱敏：对外展示时隐藏中间四位（如 138****1234）</text>
-      <text class="p">• 微信号保护：仅匹配成功后对双方可见</text>
+      <text class="p">• 微信号保护：仅组队成功后对双方可见</text>
       <text class="p">• API 限流：防止恶意刷接口和数据爬取</text>
       <text class="p">• 定期清理：聊天记录保留 30 天后自动删除</text>
 

@@ -1,7 +1,7 @@
 <template>
   <view class="page">
     <view class="hero">
-      <text class="hero-title">找搭子，一起玩 🎯</text>
+      <text class="hero-title">趣活组队，一起玩 🎯</text>
       <view class="search-bar">
         <input class="search-input" v-model="keyword" placeholder="搜索活动..." @confirm="loadData()" />
       </view>

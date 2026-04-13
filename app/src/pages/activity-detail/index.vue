@@ -43,7 +43,7 @@
       <text style="color:#d97706;">⏳ 已申请，等待对方确认</text>
     </view>
     <view class="card status-card" v-else-if="applyStatus === 1">
-      <text style="color:#059669;font-weight:700;font-size:32rpx;">🎉 匹配成功！</text>
+      <text style="color:#059669;font-weight:700;font-size:32rpx;">🎉 组队成功！</text>
       <button class="btn-primary" style="margin-top:16rpx;" @click="uni.navigateTo({url:`/pages/chat/index?matchId=${matchId}`})">去聊天 →</button>
     </view>
     <view class="card status-card" v-else-if="applyStatus === 2">

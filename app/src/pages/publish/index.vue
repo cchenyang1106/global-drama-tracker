@@ -29,7 +29,7 @@
       </view>
       <view class="field">
         <text class="label">标签（逗号分隔）</text>
-        <input class="input" v-model="form.tags" placeholder="例如：户外,徒步,交友" />
+        <input class="input" v-model="form.tags" placeholder="例如：户外,徒步,周末" />
       </view>
       <button class="submit-btn" @tap="submit" :loading="submitting">发布活动</button>
     </view>

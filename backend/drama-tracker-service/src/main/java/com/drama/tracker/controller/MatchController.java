@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
-@Tag(name = "匹配与聊天", description = "搭子匹配和聊天接口")
+@Tag(name = "组队与沟通", description = "活动组队与沟通接口")
 @RestController
 @RequestMapping("/api/match")
 @RequiredArgsConstructor
@@ -146,7 +146,7 @@ public class MatchController {
         matchMapper.updateById(mr);
 
         if (action == 1) {
-            // 匹配成功，更新活动人数
+            // 组队成功，更新活动人数
             Activity a = activityMapper.selectById(mr.getActivityId());
             if (a != null) {
                 a.setJoinedCount(a.getJoinedCount() + 1);
@@ -158,7 +158,7 @@ public class MatchController {
             msg.setMatchId(mr.getId());
             msg.setSenderId(userId);
             msg.setReceiverId(mr.getFromUserId());
-            msg.setContent(AesUtil.encrypt("匹配成功！你们可以开始聊天了 🎉", chatSecret));
+            msg.setContent(AesUtil.encrypt("组队成功！可以开始沟通活动详情了 🎉", chatSecret));
             msg.setMsgType(0);
             msg.setIsRead(0);
             chatMapper.insert(msg);
@@ -167,7 +167,7 @@ public class MatchController {
     }
 
     /**
-     * 我的匹配成功列表（聊天列表）。
+     * 我的组队列表（聊天列表）。
      */
     @Operation(summary = "聊天列表")
     @GetMapping("/chats")
@@ -226,7 +226,7 @@ public class MatchController {
 
         Long matchId = Long.valueOf(body.get("matchId").toString());
         MatchRequest mr = matchMapper.selectById(matchId);
-        if (mr == null || mr.getStatus() != 1) return Result.fail(400, "匹配不存在或未成功");
+        if (mr == null || mr.getStatus() != 1) return Result.fail(400, "组队记录不存在");
         if (!mr.getFromUserId().equals(userId) && !mr.getToUserId().equals(userId))
             return Result.fail(403, "无权操作");
 
@@ -259,7 +259,7 @@ public class MatchController {
         if (userId == null) return Result.fail(401, "请先登录");
 
         MatchRequest mr = matchMapper.selectById(matchId);
-        if (mr == null) return Result.fail(404, "匹配不存在");
+        if (mr == null) return Result.fail(404, "组队记录不存在");
         if (!mr.getFromUserId().equals(userId) && !mr.getToUserId().equals(userId))
             return Result.fail(403, "无权查看");
 
@@ -292,7 +292,7 @@ public class MatchController {
         }
         Collections.reverse(messages);
 
-        // 获取对方信息 + 微信号（匹配成功后可见）
+        // 获取对方信息 + 微信号（组队成功后可见）
         Long otherUserId = mr.getFromUserId().equals(userId) ? mr.getToUserId() : mr.getFromUserId();
         Map<String, Object> partner = new LinkedHashMap<>();
         attachUserInfo(partner, "partner", otherUserId);

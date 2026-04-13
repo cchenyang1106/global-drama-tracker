@@ -143,7 +143,7 @@ public class ProfileController {
             data.put("bio", profile.getBio());
             data.put("hobbies", profile.getHobbies());
             data.put("photos", profile.getPhotos());
-            // wechat 不公开，只有匹配成功后可见
+            // wechat 不公开，只有组队成功后可见
         }
         return Result.success(data);
     }
