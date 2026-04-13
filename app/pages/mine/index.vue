@@ -11,37 +11,37 @@
     </view>
 
     <view v-if="isLoggedIn" class="card">
-      <view class="menu-item" @click="uni.navigateTo({url:'/pages/profile/index'})">
+      <view class="menu-item" @tap="goTo('/pages/profile/index')">
         <text>✏️ 编辑资料</text><text class="arrow">›</text>
       </view>
-      <view class="menu-item" @click="uni.navigateTo({url:'/pages/publish/index'})">
+      <view class="menu-item" @tap="goTo('/pages/publish/index')">
         <text>📝 发布活动</text><text class="arrow">›</text>
       </view>
-      <view class="menu-item" @click="uni.switchTab({url:'/pages/messages/index'})">
+      <view class="menu-item" @tap="goTab('/pages/messages/index')">
         <text>💬 我的消息</text><text class="arrow">›</text>
       </view>
     </view>
 
     <view v-if="isLoggedIn" class="card">
-      <view class="menu-item" @click="uni.navigateTo({url:'/pages/my-data/index'})">
+      <view class="menu-item" @tap="goTo('/pages/my-data/index')">
         <text>📦 我的数据（导出/注销）</text><text class="arrow">›</text>
       </view>
-      <view class="menu-item" @click="uni.navigateTo({url:'/pages/privacy/index'})">
+      <view class="menu-item" @tap="goTo('/pages/privacy/index')">
         <text>🔒 隐私政策</text><text class="arrow">›</text>
       </view>
     </view>
 
     <view v-if="isLoggedIn" style="padding:20rpx;">
-      <button class="btn-logout" @click="doLogout">退出登录</button>
+      <button class="btn-logout" @tap="doLogout">退出登录</button>
     </view>
 
     <view v-if="!isLoggedIn" class="card" style="text-align:center;padding:60rpx;">
       <text style="font-size:40rpx;display:block;margin-bottom:20rpx;">🎯</text>
-      <text style="font-size:30rpx;font-weight:700;color:#4a2040;display:block;margin-bottom:12rpx;">趣活组队</text>
+      <text style="font-size:30rpx;font-weight:700;color:#4a2040;display:block;margin-bottom:12rpx;">同好出发</text>
       <text style="font-size:26rpx;color:#b8929e;display:block;margin-bottom:32rpx;">登录后发布活动、参与活动</text>
-      <button class="btn-primary" @click="uni.navigateTo({url:'/pages/login/index'})">登录 / 注册</button>
+      <button class="btn-primary" @tap="goTo('/pages/login/index')">登录 / 注册</button>
       <view style="margin-top:20rpx;">
-        <text style="font-size:24rpx;color:#b8929e;" @click="uni.navigateTo({url:'/pages/privacy/index'})">🔒 隐私政策</text>
+        <text style="font-size:24rpx;color:#b8929e;" @tap="goTo('/pages/privacy/index')">🔒 隐私政策</text>
       </view>
     </view>
   </view>
@@ -53,6 +53,9 @@ import { ref, onMounted } from 'vue'
 const isLoggedIn = ref(false)
 const nickname = ref('')
 const phone = ref('')
+
+function goTo(url) { uni.navigateTo({ url }) }
+function goTab(url) { uni.switchTab({ url }) }
 
 function checkLogin() {
   const token = uni.getStorageSync('token')

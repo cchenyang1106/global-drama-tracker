@@ -2,7 +2,7 @@
   <view style="padding: 150rpx 48rpx 0;">
     <view style="background: #fff; border-radius: 24rpx; padding: 60rpx 40rpx; text-align: center;">
       <text style="font-size: 40rpx; font-weight: 800; color: #4a2040; display: block; margin-bottom: 8rpx;">{{ isRegister ? '📝 注册' : '🎯 登录' }}</text>
-      <text style="font-size: 24rpx; color: #b8929e; display: block; margin-bottom: 48rpx;">趣活组队 · 发现有趣的活动，找到一起玩的人</text>
+      <text style="font-size: 24rpx; color: #b8929e; display: block; margin-bottom: 48rpx;">同好出发 · 发现有趣的活动，找到一起玩的人</text>
 
       <input
         v-model="form.phone"
