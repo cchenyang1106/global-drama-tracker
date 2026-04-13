@@ -42,6 +42,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { getActivities } from '@/api/activity'
+import { getChatList } from '@/api/match'
 
 const keyword = ref('')
 const currentCat = ref('all')
@@ -78,7 +79,26 @@ async function loadData() {
   loading.value = false
 }
 
-onMounted(loadData)
+onMounted(() => {
+  loadData()
+  checkUnread()
+  unreadTimer = setInterval(checkUnread, 15000)
+})
+
+let unreadTimer = null
+
+async function checkUnread() {
+  if (!uni.getStorageSync('token')) return
+  try {
+    const chats = await getChatList()
+    const unread = (chats || []).reduce((sum, c) => sum + (c.unreadCount || 0), 0)
+    if (unread > 0) {
+      uni.setTabBarBadge({ index: 1, text: String(unread > 99 ? '99+' : unread) })
+    } else {
+      uni.removeTabBarBadge({ index: 1 })
+    }
+  } catch {}
+}
 </script>
 
 <style>

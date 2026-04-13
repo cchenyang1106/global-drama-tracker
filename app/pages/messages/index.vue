@@ -86,6 +86,18 @@ async function loadAll() {
   try { chats.value = await getChatList() || [] } catch {}
   try { received.value = await getReceivedRequests() || [] } catch {}
   try { sent.value = await getSentRequests() || [] } catch {}
+  updateBadge()
+}
+
+function updateBadge() {
+  const unread = (chats.value || []).reduce((sum, c) => sum + (c.unreadCount || 0), 0)
+  const pending = (received.value || []).filter(r => r.status === 0).length
+  const total = unread + pending
+  if (total > 0) {
+    uni.setTabBarBadge({ index: 1, text: String(total > 99 ? '99+' : total) })
+  } else {
+    uni.removeTabBarBadge({ index: 1 })
+  }
 }
 
 async function handleReq(id, action) {
