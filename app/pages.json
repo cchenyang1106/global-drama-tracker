@@ -9,6 +9,7 @@
     { "path": "pages/profile/index", "style": { "navigationBarTitleText": "编辑资料" } },
     { "path": "pages/login/index", "style": { "navigationBarTitleText": "登录" } },
     { "path": "pages/privacy/index", "style": { "navigationBarTitleText": "隐私政策" } },
+    { "path": "pages/terms/index", "style": { "navigationBarTitleText": "用户协议" } },
     { "path": "pages/my-data/index", "style": { "navigationBarTitleText": "我的数据" } },
     { "path": "pages/quiz-edit/index", "style": { "navigationBarTitleText": "设置题目" } },
     { "path": "pages/quiz-answer/index", "style": { "navigationBarTitleText": "答题" } },
