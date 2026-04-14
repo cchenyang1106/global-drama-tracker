@@ -177,12 +177,22 @@ function editAnnouncement() {
   })
 }
 
-// 获取联系方式（通过审核后）
+// 获取联系方式（通过审核后，静默请求不弹错误）
 async function loadContactInfo() {
   if (!activityId || !isLoggedIn.value) return
   try {
-    const info = await request({ url: `/activity/contact/${activityId}`, needAuth: true })
-    contactInfo.value = info || ''
+    const token = uni.getStorageSync('token')
+    const res = await new Promise((resolve) => {
+      uni.request({
+        url: `https://global-drama-tracker-production.up.railway.app/api/activity/contact/${activityId}`,
+        header: { 'Authorization': `Bearer ${token}` },
+        success: (r) => resolve(r),
+        fail: () => resolve(null)
+      })
+    })
+    if (res && res.data && res.data.code === 200) {
+      contactInfo.value = res.data.data || ''
+    }
   } catch {}
 }
 
