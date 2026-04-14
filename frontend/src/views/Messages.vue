@@ -57,7 +57,7 @@
           </div>
           <p v-if="s.message" class="req-msg">"{{ s.message }}"</p>
           <el-tag v-if="s.status === 0" type="warning" size="small">等待确认</el-tag>
-          <el-tag v-else-if="s.status === 1" type="success" size="small">已组队 ✅</el-tag>
+          <el-tag v-else-if="s.status === 1" type="success" size="small">已通过 ✅</el-tag>
           <el-tag v-else type="info" size="small">已拒绝</el-tag>
         </div>
       </el-tab-pane>

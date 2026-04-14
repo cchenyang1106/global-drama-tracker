@@ -2,7 +2,7 @@
   <div class="login-page">
     <div class="login-card">
       <h1>🔐 管理端登录</h1>
-      <p class="subtitle">同好出发 管理中心</p>
+      <p class="subtitle">趣活圈 管理中心</p>
       <el-form @submit.prevent="handleLogin" class="login-form">
         <el-form-item>
           <el-input v-model="form.username" placeholder="管理员账号" prefix-icon="User" size="large" />

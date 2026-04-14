@@ -61,7 +61,7 @@
       ⏳ 已申请，等待对方确认
     </div>
     <div v-else-if="applyStatus === 1" class="apply-section match-success">
-      🎉 组队成功！
+      🎉 恭喜！已加入活动群聊
       <router-link :to="`/chat/${matchId}`" class="chat-link">去聊天 →</router-link>
     </div>
     <div v-else-if="applyStatus === 2" class="apply-section owner-tip" style="color:#e11d48">

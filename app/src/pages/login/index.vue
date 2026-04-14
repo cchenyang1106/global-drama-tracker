@@ -4,7 +4,7 @@
       <!-- 登录/注册 -->
       <view v-if="mode !== 'reset'">
         <text style="font-size: 40rpx; font-weight: 800; color: #4a2040; display: block; margin-bottom: 8rpx;">{{ isRegister ? '📝 注册' : '🎯 登录' }}</text>
-        <text style="font-size: 24rpx; color: #b8929e; display: block; margin-bottom: 48rpx;">同好出发 · 发现有趣的活动，找到一起玩的人</text>
+        <text style="font-size: 24rpx; color: #b8929e; display: block; margin-bottom: 48rpx;">趣活圈 · 发现身边的精彩活动</text>
 
         <input v-model="form.phone" placeholder="手机号" maxlength="11"
           style="background: #fff5f7; border: 2rpx solid #fce4ec; border-radius: 16rpx; padding: 24rpx; color: #4a2040; font-size: 28rpx; margin-bottom: 24rpx;" />

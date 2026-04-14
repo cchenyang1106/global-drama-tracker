@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
-  { path: '/', name: 'Home', component: () => import('@/views/Home.vue'), meta: { title: '同好出发' } },
+  { path: '/', name: 'Home', component: () => import('@/views/Home.vue'), meta: { title: '趣活圈' } },
   { path: '/activity/:id', name: 'ActivityDetail', component: () => import('@/views/ActivityDetail.vue'), meta: { title: '活动详情' } },
   { path: '/publish', name: 'Publish', component: () => import('@/views/Publish.vue'), meta: { title: '发布活动', requiresLogin: true } },
   { path: '/messages', name: 'Messages', component: () => import('@/views/Messages.vue'), meta: { title: '消息', requiresLogin: true } },
@@ -38,7 +38,7 @@ router.beforeEach((to, from, next) => {
   if (to.meta.requiresLogin && !localStorage.getItem('token')) {
     return next(`/login?redirect=${to.fullPath}`)
   }
-  document.title = (to.meta.title ? to.meta.title + ' - ' : '') + '同好出发'
+  document.title = (to.meta.title ? to.meta.title + ' - ' : '') + '趣活圈'
   next()
 })
 

@@ -69,7 +69,7 @@ jwt:
   prefix: Bearer
 
 app:
-  name: 同好出发
+  name: 趣活圈
   version: 2.0.0
   admin:
     username: ${ADMIN_USERNAME:admin}

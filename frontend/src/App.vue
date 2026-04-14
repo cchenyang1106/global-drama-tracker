@@ -11,7 +11,7 @@
       <div class="navbar-inner">
         <router-link to="/" class="logo">
           <span class="logo-icon">🎯</span>
-          <span class="logo-text">同好出发</span>
+          <span class="logo-text">趣活圈</span>
         </router-link>
 
         <nav class="nav-links">
@@ -64,7 +64,7 @@
 
     <!-- 底部 -->
     <footer class="footer">
-      <p>© 2026 同好出发 · 发现有趣的活动，找到一起玩的人</p>
+      <p>© 2026 趣活圈 · 发现身边的精彩活动</p>
     </footer>
   </div>
 </template>

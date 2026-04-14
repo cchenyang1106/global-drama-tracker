@@ -74,7 +74,7 @@ jwt:
 
 # 自定义配置
 app:
-  name: 同好出发
+  name: 趣活圈
   version: 2.0.0
   admin:
     username: admin

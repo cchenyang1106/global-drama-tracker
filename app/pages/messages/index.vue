@@ -36,7 +36,7 @@
           </view>
         </view>
         <text v-if="r.status === 0" class="status-yellow">⏳ 待批改答卷</text>
-        <text v-else-if="r.status === 1" class="status-green">已通过 ✅ 已自动拉入群聊</text>
+        <text v-else-if="r.status === 1" class="status-green">已通过 ✅ 已加入活动群聊</text>
         <text v-else-if="r.status === 2" class="status-red">❌ 未通过</text>
         <view v-if="r.status === 0" style="margin-top:12rpx;">
           <button class="btn-review" @tap="goReview(r.activityId)">去批改答卷 →</button>

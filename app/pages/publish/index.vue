@@ -11,13 +11,13 @@
           <text class="step-num">①</text>
           <view class="step-content">
             <text class="step-main">发布活动，设置人数</text>
-            <text class="step-desc">填写活动信息，设定需要的搭子人数</text>
+            <text class="step-desc">填写活动信息，设定活动参与人数</text>
           </view>
         </view>
         <view class="step-item">
           <text class="step-num">②</text>
           <view class="step-content">
-            <text class="step-main">出题筛选搭子</text>
+            <text class="step-main">出题了解申请人</text>
             <text class="step-desc">发布后进入活动详情，设置题目（最多10题），用来了解申请人</text>
           </view>
         </view>
@@ -31,19 +31,19 @@
         <view class="step-item">
           <text class="step-num">④</text>
           <view class="step-content">
-            <text class="step-main">批改答卷，选择搭子</text>
+            <text class="step-main">批改答卷，选择合适的人</text>
             <text class="step-desc">查看答卷，通过合适的人，不合适的可以拒绝</text>
           </view>
         </view>
         <view class="step-item">
           <text class="step-num">⑤</text>
           <view class="step-content">
-            <text class="step-main">自动拉群，组队成功！</text>
-            <text class="step-desc">通过的搭子自动加入群聊，大家可以在群里沟通细节</text>
+            <text class="step-main">自动拉群，活动开始！</text>
+            <text class="step-desc">通过的参与者自动加入活动群聊，方便沟通细节</text>
           </view>
         </view>
       </view>
-      <text class="rules-tip">💡 人数满额后可标记"组队完成"，停止接收新申请</text>
+      <text class="rules-tip">💡 人数满额后可标记"满员"，停止接收新申请</text>
     </view>
     <view v-else class="rules-collapsed" @tap="showRules = true">
       <text class="rules-collapsed-text">📋 查看发布流程说明</text>

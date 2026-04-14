@@ -37,7 +37,7 @@
 
     <view v-if="!isLoggedIn" class="card" style="text-align:center;padding:60rpx;">
       <text style="font-size:40rpx;display:block;margin-bottom:20rpx;">🎯</text>
-      <text style="font-size:30rpx;font-weight:700;color:#4a2040;display:block;margin-bottom:12rpx;">同好出发</text>
+      <text style="font-size:30rpx;font-weight:700;color:#4a2040;display:block;margin-bottom:12rpx;">趣活圈</text>
       <text style="font-size:26rpx;color:#b8929e;display:block;margin-bottom:32rpx;">登录后发布活动、参与活动</text>
       <button class="btn-primary" @tap="goTo('/pages/login/index')">登录 / 注册</button>
       <view style="margin-top:20rpx;">

@@ -8,7 +8,7 @@ import javax.annotation.PostConstruct;
 import java.util.TimeZone;
 
 /**
- * 同好出发平台启动类。
+ * 趣活圈平台启动类。
  */
 @SpringBootApplication
 @EnableScheduling
