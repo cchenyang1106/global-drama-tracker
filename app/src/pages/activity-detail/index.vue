@@ -252,8 +252,8 @@ async function refreshData() {
       const myReq = (sent || []).find(r => r.activityId == activityId)
       if (myReq) { applyStatus.value = myReq.status; matchId.value = myReq.id }
     } catch {}
-    // 通过后获取联系方式
-    if (applyStatus.value === 1 || isOwner.value) {
+    // 通过后获取联系方式（仅申请人，发布人不需要）
+    if (applyStatus.value === 1 && !isOwner.value) {
       loadContactInfo()
     }
   }
