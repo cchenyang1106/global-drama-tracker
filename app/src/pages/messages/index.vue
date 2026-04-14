@@ -77,8 +77,10 @@ async function loadAll() {
 
 function updateBadge() {
   const total = pendingCount.value
-  if (total > 0) uni.setTabBarBadge({ index: 1, text: String(total > 99 ? '99+' : total) })
-  else uni.removeTabBarBadge({ index: 1 })
+  try {
+    if (total > 0) uni.setTabBarBadge({ index: 1, text: String(total > 99 ? '99+' : total) })
+    else uni.removeTabBarBadge({ index: 1 })
+  } catch {}
 }
 
 onShow(() => { loadAll(); pollTimer = setInterval(loadAll, 8000) })

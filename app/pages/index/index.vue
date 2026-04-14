@@ -96,7 +96,7 @@ async function checkUnread() {
     if (pending > 0) {
       uni.setTabBarBadge({ index: 1, text: String(pending > 99 ? '99+' : pending) })
     } else {
-      uni.removeTabBarBadge({ index: 1 })
+      try { uni.removeTabBarBadge({ index: 1 }) } catch {}
     }
   } catch {}
 }
