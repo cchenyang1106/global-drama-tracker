@@ -43,7 +43,6 @@
 import { ref, onMounted } from 'vue'
 import { getActivities } from '@/api/activity'
 import { getReceivedRequests } from '@/api/match'
-import { getGroupList } from '@/api/group'
 
 const keyword = ref('')
 const currentCat = ref('all')
@@ -92,12 +91,10 @@ let unreadTimer = null
 async function checkUnread() {
   if (!uni.getStorageSync('token')) return
   try {
-    const [groups, received] = await Promise.all([getGroupList(), getReceivedRequests()])
-    const groupUnread = (groups || []).reduce((sum, g) => sum + (g.unreadCount || 0), 0)
+    const received = await getReceivedRequests()
     const pending = (received || []).filter(r => r.status === 0).length
-    const total = groupUnread + pending
-    if (total > 0) {
-      uni.setTabBarBadge({ index: 1, text: String(total > 99 ? '99+' : total) })
+    if (pending > 0) {
+      uni.setTabBarBadge({ index: 1, text: String(pending > 99 ? '99+' : pending) })
     } else {
       uni.removeTabBarBadge({ index: 1 })
     }

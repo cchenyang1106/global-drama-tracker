@@ -43,10 +43,10 @@
         <text class="flow-arrow">→</text>
         <view class="flow-step"><text class="flow-icon">✅</text><text class="flow-text">通过</text></view>
         <text class="flow-arrow">→</text>
-        <view class="flow-step"><text class="flow-icon">💬</text><text class="flow-text">加入活动群</text></view>
+        <view class="flow-step"><text class="flow-icon">🔓</text><text class="flow-text">查看详情</text></view>
       </view>
       <text style="font-size:24rpx;color:#b8929e;display:block;margin-bottom:16rpx;">
-        发布人设置了 {{ activity.quizCount || 0 }} 道题目，回答后等待批改，通过即可加入活动
+        发布人设置了 {{ activity.quizCount || 0 }} 道题目，回答后等待批改，通过即可查看活动联系方式
       </text>
       <button v-if="activity.quizCount > 0" class="btn-primary" @tap="goTo(`/pages/quiz-answer/index?activityId=${activity.id}`)">开始答题</button>
       <text v-else style="color:#b8929e;font-size:24rpx;display:block;text-align:center;">发布人还没出题，请稍后再来</text>
@@ -59,8 +59,14 @@
       <view style="display:flex;flex-direction:column;gap:12rpx;">
         <button class="btn-outline" @tap="goTo(`/pages/quiz-edit/index?activityId=${activity.id}`)">✏️ 出题 / 编辑题目</button>
         <button class="btn-outline" @tap="goTo(`/pages/quiz-papers/index?activityId=${activity.id}`)">📊 查看答卷 / 批改</button>
+        <button class="btn-outline" @tap="editAnnouncement">📢 发布/更新公告</button>
         <button v-if="activity.teamComplete !== 1 && activity.status === 1" class="btn-primary" @tap="doTeamComplete">🔒 标记为满员（停止接受申请）</button>
         <button v-if="activity.teamComplete === 1" class="btn-danger-outline" @tap="doDeleteActivity">🗑 删除此活动</button>
+      </view>
+      <!-- 当前公告 -->
+      <view v-if="activity.announcement" style="margin-top:16rpx;padding:16rpx;background:#fef9f0;border-radius:12rpx;border:1px dashed #fbbf24;">
+        <text style="font-size:24rpx;color:#92400e;font-weight:600;display:block;margin-bottom:4rpx;">📢 当前公告</text>
+        <text style="font-size:26rpx;color:#78350f;line-height:1.6;">{{ activity.announcement }}</text>
       </view>
     </view>
     <!-- 等待批改 -->
@@ -69,19 +75,32 @@
       <view class="status-flow-hint">
         <text class="status-step done">📝 答题 ✓</text>
         <text class="status-step current">⏳ 等待批改</text>
-        <text class="status-step">✅ 通过加群</text>
+        <text class="status-step">✅ 查看详情</text>
       </view>
-      <text style="font-size:24rpx;color:#b8929e;display:block;margin-top:12rpx;">发布人批改后你会收到结果通知，通过后将自动加入活动群聊</text>
+      <text style="font-size:24rpx;color:#b8929e;display:block;margin-top:12rpx;">发布人批改后你会收到结果通知，通过后可查看活动联系方式</text>
     </view>
     <!-- 通过 -->
-    <view class="card status-card" v-else-if="applyStatus === 1">
-      <text style="color:#059669;font-weight:700;font-size:32rpx;">🎉 恭喜！已加入活动群聊</text>
+    <view class="card" v-else-if="applyStatus === 1">
+      <text style="color:#059669;font-weight:700;font-size:32rpx;display:block;text-align:center;">🎉 恭喜通过！</text>
       <view class="status-flow-hint">
         <text class="status-step done">📝 答题 ✓</text>
         <text class="status-step done">✅ 已通过 ✓</text>
-        <text class="status-step done">💬 已加群 ✓</text>
+        <text class="status-step done">🔓 已解锁 ✓</text>
       </view>
-      <text style="font-size:24rpx;color:#059669;display:block;margin-top:12rpx;">去「消息 → 群聊」和伙伴们沟通活动细节吧！</text>
+      <!-- 联系方式 -->
+      <view v-if="contactInfo" style="margin-top:16rpx;padding:20rpx;background:#ecfdf5;border-radius:16rpx;border:1px solid #a7f3d0;">
+        <text style="font-size:26rpx;color:#065f46;font-weight:700;display:block;margin-bottom:8rpx;">🔗 活动联系方式</text>
+        <text style="font-size:28rpx;color:#047857;line-height:1.6;" selectable>{{ contactInfo }}</text>
+        <text style="font-size:22rpx;color:#6ee7b7;display:block;margin-top:8rpx;">长按可复制</text>
+      </view>
+      <view v-else style="margin-top:16rpx;text-align:center;">
+        <text style="font-size:24rpx;color:#b8929e;">发布人暂未设置联系方式</text>
+      </view>
+      <!-- 公告 -->
+      <view v-if="activity.announcement" style="margin-top:16rpx;padding:16rpx;background:#fef9f0;border-radius:12rpx;border:1px dashed #fbbf24;">
+        <text style="font-size:24rpx;color:#92400e;font-weight:600;display:block;margin-bottom:4rpx;">📢 活动公告</text>
+        <text style="font-size:26rpx;color:#78350f;line-height:1.6;">{{ activity.announcement }}</text>
+      </view>
     </view>
     <!-- 未通过 -->
     <view class="card status-card" v-else-if="applyStatus === 2">
@@ -122,6 +141,7 @@ const applyMsg = ref('')
 const applying = ref(false)
 const applyStatus = ref(-1)
 const matchId = ref(null)
+const contactInfo = ref('')
 let activityId = null
 
 // 举报
@@ -137,6 +157,35 @@ const canApply = computed(() => isLoggedIn.value && !isOwner.value && applyStatu
 
 function goUser(id) { uni.navigateTo({ url: `/pages/profile/index?userId=${id}` }) }
 function goTo(url) { uni.navigateTo({ url }) }
+
+// 发布人更新公告
+function editAnnouncement() {
+  uni.showModal({
+    title: '更新活动公告',
+    editable: true,
+    placeholderText: '输入公告内容（如集合地点、注意事项等）',
+    content: activity.value?.announcement || '',
+    success: async (res) => {
+      if (res.confirm) {
+        try {
+          await request({ url: `/activity/announcement/${activityId}`, method: 'POST', data: { announcement: res.content }, needAuth: true })
+          uni.showToast({ title: '公告已更新', icon: 'success' })
+          activity.value.announcement = res.content
+        } catch (e) { uni.showToast({ title: e?.message || '更新失败', icon: 'none' }) }
+      }
+    }
+  })
+}
+
+// 获取联系方式（通过审核后）
+async function loadContactInfo() {
+  if (!activityId || !isLoggedIn.value) return
+  try {
+    const info = await request({ url: `/activity/contact/${activityId}`, needAuth: true })
+    contactInfo.value = info || ''
+  } catch {}
+}
+
 function goChat() {
   if (matchId.value) uni.navigateTo({ url: `/pages/chat/index?matchId=${matchId.value}` })
   else uni.showToast({ title: '聊天信息加载中', icon: 'none' })
@@ -203,6 +252,10 @@ async function refreshData() {
       const myReq = (sent || []).find(r => r.activityId == activityId)
       if (myReq) { applyStatus.value = myReq.status; matchId.value = myReq.id }
     } catch {}
+    // 通过后获取联系方式
+    if (applyStatus.value === 1 || isOwner.value) {
+      loadContactInfo()
+    }
   }
 }
 

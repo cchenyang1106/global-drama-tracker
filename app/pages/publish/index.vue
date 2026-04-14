@@ -38,8 +38,8 @@
         <view class="step-item">
           <text class="step-num">⑤</text>
           <view class="step-content">
-            <text class="step-main">自动拉群，活动开始！</text>
-            <text class="step-desc">通过的参与者自动加入活动群聊，方便沟通细节</text>
+            <text class="step-main">通过审核，解锁详情！</text>
+            <text class="step-desc">通过的参与者可查看你预留的联系方式和活动公告</text>
           </view>
         </view>
       </view>
@@ -82,6 +82,11 @@
         <view class="field" style="flex:1;"><text class="label">标签</text>
           <input v-model="form.tags" placeholder="户外,徒步,周末" class="input" @input="saveDraft" />
         </view>
+      </view>
+
+      <view class="field"><text class="label">通过后可见信息（选填）</text>
+        <textarea v-model="form.contactInfo" placeholder="参与者通过审核后可以看到这里的内容，如：QQ群号、集合地点详情等" maxlength="500" class="textarea" @input="saveDraft" />
+        <text style="font-size:22rpx;color:#b8929e;margin-top:4rpx;display:block;">💡 仅通过答题审核的人可见</text>
       </view>
 
       <!-- 筛选偏好 -->
@@ -132,7 +137,7 @@ const hasDraft = ref(false)
 const showRules = ref(true)
 const form = reactive({
   title: '', category: '旅游', description: '', location: '', activityTime: '',
-  maxPeople: '', tags: '', preferGender: 0, preferAgeMin: '', preferAgeMax: '',
+  maxPeople: '', tags: '', contactInfo: '', preferGender: 0, preferAgeMin: '', preferAgeMax: '',
   preferCity: '', preferTags: ''
 })
 
@@ -154,7 +159,7 @@ function loadDraft() {
 
 function clearDraft() {
   uni.removeStorageSync('publish_draft')
-  Object.assign(form, { title: '', category: '旅游', description: '', location: '', activityTime: '', maxPeople: '', tags: '', preferGender: 0, preferAgeMin: '', preferAgeMax: '', preferCity: '', preferTags: '' })
+  Object.assign(form, { title: '', category: '旅游', description: '', location: '', activityTime: '', maxPeople: '', tags: '', contactInfo: '', preferGender: 0, preferAgeMin: '', preferAgeMax: '', preferCity: '', preferTags: '' })
   hasDraft.value = false
   uni.showToast({ title: '草稿已清除', icon: 'success' })
 }

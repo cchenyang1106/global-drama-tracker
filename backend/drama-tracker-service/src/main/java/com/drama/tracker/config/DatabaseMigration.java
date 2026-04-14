@@ -23,17 +23,23 @@ public class DatabaseMigration implements CommandLineRunner {
     @Override
     public void run(String... args) {
         try (Connection conn = dataSource.getConnection(); Statement stmt = conn.createStatement()) {
-            // 检查 group_member_info 表是否有 last_read_time 字段
-            ResultSet rs = conn.getMetaData().getColumns(null, null, "group_member_info", "last_read_time");
-            if (!rs.next()) {
-                stmt.execute("ALTER TABLE group_member_info ADD COLUMN last_read_time DATETIME DEFAULT NULL COMMENT '最后已读时间' AFTER role");
-                log.info("数据库迁移：group_member_info 表添加 last_read_time 字段成功");
-            } else {
-                log.info("数据库迁移：last_read_time 字段已存在，跳过");
-            }
-            rs.close();
+            addColumnIfNotExists(conn, stmt, "group_member_info", "last_read_time",
+                    "ALTER TABLE group_member_info ADD COLUMN last_read_time DATETIME DEFAULT NULL COMMENT '最后已读时间' AFTER role");
+            addColumnIfNotExists(conn, stmt, "activity", "contact_info",
+                    "ALTER TABLE activity ADD COLUMN contact_info VARCHAR(500) DEFAULT NULL COMMENT '通过后可见的联系方式' AFTER images");
+            addColumnIfNotExists(conn, stmt, "activity", "announcement",
+                    "ALTER TABLE activity ADD COLUMN announcement TEXT DEFAULT NULL COMMENT '活动公告' AFTER contact_info");
         } catch (Exception e) {
             log.warn("数据库迁移执行异常（可忽略）: {}", e.getMessage());
         }
+    }
+
+    private void addColumnIfNotExists(Connection conn, Statement stmt, String table, String column, String sql) throws Exception {
+        ResultSet rs = conn.getMetaData().getColumns(null, null, table, column);
+        if (!rs.next()) {
+            stmt.execute(sql);
+            log.info("数据库迁移：{} 表添加 {} 字段成功", table, column);
+        }
+        rs.close();
     }
 }

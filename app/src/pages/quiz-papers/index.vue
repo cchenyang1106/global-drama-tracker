@@ -50,7 +50,7 @@ async function grade(userId, status) {
   const action = status === 1 ? '通过' : '不通过'
   uni.showModal({
     title: `确认${action}？`,
-    content: status === 1 ? '通过后将自动拉入群聊' : '确认标记为不通过？',
+    content: status === 1 ? '通过后对方可查看活动联系方式' : '确认标记为不通过？',
     success: async (res) => {
       if (res.confirm) {
         try {

@@ -26,9 +26,11 @@ public class Activity {
     private String preferCity;
     private String preferTags;
     private String images;
+    private String contactInfo;    // 通过后可见的联系方式（QQ群号等）
+    private String announcement;   // 活动公告
     private Integer status;
     private Integer viewCount;
-    private Integer teamComplete;   // 0未完成 1已组队完成
+    private Integer teamComplete;   // 0未完成 1已满员截止
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;

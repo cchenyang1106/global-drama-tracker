@@ -35,6 +35,7 @@ public class ActivityController {
     private final ActivityQuizMapper quizMapper;
     private final UserMapper userMapper;
     private final UserProfileMapper profileMapper;
+    private final MatchRequestMapper matchRequestMapper;
 
     @Value("${jwt.secret:drama-tracker-jwt-secret}")
     private String jwtSecret;
@@ -157,6 +158,7 @@ public class ActivityController {
         a.setPreferCity((String) body.get("preferCity"));
         a.setPreferTags((String) body.get("preferTags"));
         a.setImages((String) body.get("images"));
+        a.setContactInfo((String) body.get("contactInfo"));
         a.setStatus(1);
         a.setJoinedCount(0);
         a.setViewCount(0);
@@ -199,6 +201,43 @@ public class ActivityController {
         return Result.success("已关闭");
     }
 
+    /**
+     * 更新活动公告（发布人）。
+     */
+    @PostMapping("/announcement/{id}")
+    public Result<?> updateAnnouncement(@RequestHeader(value = "Authorization", required = false) String auth,
+                                         @PathVariable Long id, @RequestBody Map<String, Object> body) {
+        Long userId = getUserIdFromToken(auth);
+        if (userId == null) return Result.fail(401, "请先登录");
+        Activity a = activityMapper.selectById(id);
+        if (a == null) return Result.fail(404, "活动不存在");
+        if (!a.getUserId().equals(userId)) return Result.fail(403, "只有发布人可以更新公告");
+        a.setAnnouncement((String) body.get("announcement"));
+        activityMapper.updateById(a);
+        return Result.success("公告已更新");
+    }
+
+    /**
+     * 获取活动联系方式（仅通过审核的参与者可见）。
+     */
+    @GetMapping("/contact/{id}")
+    public Result<?> getContactInfo(@RequestHeader(value = "Authorization", required = false) String auth,
+                                     @PathVariable Long id) {
+        Long userId = getUserIdFromToken(auth);
+        if (userId == null) return Result.fail(401, "请先登录");
+        Activity a = activityMapper.selectById(id);
+        if (a == null) return Result.fail(404, "活动不存在");
+        // 发布人自己可以看
+        if (a.getUserId().equals(userId)) {
+            return Result.success(a.getContactInfo());
+        }
+        // 检查是否通过审核
+        MatchRequest mr = matchRequestMapper.selectOne(new LambdaQueryWrapper<MatchRequest>()
+                .eq(MatchRequest::getActivityId, id).eq(MatchRequest::getFromUserId, userId));
+        if (mr == null || mr.getStatus() != 1) return Result.fail(403, "需通过活动审核后才能查看");
+        return Result.success(a.getContactInfo());
+    }
+
     private Map<String, Object> activityToMap(Activity a) {
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("id", a.getId());
@@ -212,6 +251,8 @@ public class ActivityController {
         m.put("joinedCount", a.getJoinedCount());
         m.put("tags", a.getTags());
         m.put("images", a.getImages());
+        m.put("announcement", a.getAnnouncement());
+        m.put("teamComplete", a.getTeamComplete());
         m.put("status", a.getStatus());
         m.put("viewCount", a.getViewCount());
         m.put("createTime", a.getCreateTime());

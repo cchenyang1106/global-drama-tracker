@@ -12,8 +12,7 @@
     { "path": "pages/my-data/index", "style": { "navigationBarTitleText": "我的数据" } },
     { "path": "pages/quiz-edit/index", "style": { "navigationBarTitleText": "设置题目" } },
     { "path": "pages/quiz-answer/index", "style": { "navigationBarTitleText": "答题" } },
-    { "path": "pages/quiz-papers/index", "style": { "navigationBarTitleText": "答卷批改" } },
-    { "path": "pages/group-chat/index", "style": { "navigationBarTitleText": "群聊" } }
+    { "path": "pages/quiz-papers/index", "style": { "navigationBarTitleText": "答卷批改" } }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",

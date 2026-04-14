@@ -40,7 +40,7 @@
     <view v-if="quizzes.length === 0" class="empty">发布人还没有出题</view>
 
     <view v-if="quizzes.length > 0" class="submit-area">
-      <text class="submit-tip">💡 提交后发布人会查看你的答卷，通过后你将自动加入活动群聊</text>
+      <text class="submit-tip">💡 提交后发布人会查看你的答卷，通过后即可查看活动联系方式</text>
       <button class="btn-primary" @tap="submit" :disabled="submitting">
         {{ submitting ? '提交中...' : '提交答卷' }}
       </button>

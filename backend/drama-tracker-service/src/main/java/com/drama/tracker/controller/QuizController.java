@@ -248,38 +248,9 @@ public class QuizController {
         if (result == 1) {
             a.setJoinedCount((a.getJoinedCount() != null ? a.getJoinedCount() : 0) + 1);
             activityMapper.updateById(a);
-
-            // 自动创建/加入群聊
-            GroupChat group = groupChatMapper.selectOne(
-                    new LambdaQueryWrapper<GroupChat>().eq(GroupChat::getActivityId, activityId));
-            if (group == null) {
-                group = new GroupChat();
-                group.setActivityId(activityId);
-                group.setName(a.getTitle());
-                group.setCreateTime(LocalDateTime.now());
-                groupChatMapper.insert(group);
-                // 群主（发布人）
-                GroupMemberInfo owner = new GroupMemberInfo();
-                owner.setGroupId(group.getId());
-                owner.setUserId(userId);
-                owner.setRole(1);
-                owner.setCreateTime(LocalDateTime.now());
-                groupMemberMapper.insert(owner);
-            }
-            // 加入新成员
-            Long exists = groupMemberMapper.selectCount(new LambdaQueryWrapper<GroupMemberInfo>()
-                    .eq(GroupMemberInfo::getGroupId, group.getId()).eq(GroupMemberInfo::getUserId, targetUserId));
-            if (exists == 0) {
-                GroupMemberInfo member = new GroupMemberInfo();
-                member.setGroupId(group.getId());
-                member.setUserId(targetUserId);
-                member.setRole(0);
-                member.setCreateTime(LocalDateTime.now());
-                groupMemberMapper.insert(member);
-            }
         }
 
-        return Result.success(result == 1 ? "已通过，已自动拉入群聊" : "已标记不通过");
+        return Result.success(result == 1 ? "已通过，参与者可查看活动联系方式" : "已标记不通过");
     }
 
     private Long getUserIdFromToken(String auth) {
