@@ -40,7 +40,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
+import { onShow, onHide } from '@dcloudio/uni-app'
 import { getActivities } from '@/api/activity'
 import { getReceivedRequests } from '@/api/match'
 
@@ -80,13 +81,16 @@ async function loadData() {
   loading.value = false
 }
 
-onMounted(() => {
+let unreadTimer = null
+
+onShow(() => {
   loadData()
   checkUnread()
   unreadTimer = setInterval(checkUnread, 15000)
 })
-
-let unreadTimer = null
+onHide(() => {
+  if (unreadTimer) { clearInterval(unreadTimer); unreadTimer = null }
+})
 
 async function checkUnread() {
   if (!uni.getStorageSync('token')) return
