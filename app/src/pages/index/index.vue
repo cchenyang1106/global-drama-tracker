@@ -98,9 +98,9 @@ async function checkUnread() {
     const received = await getReceivedRequests()
     const pending = (received || []).filter(r => r.status === 0).length
     if (pending > 0) {
-      uni.setTabBarBadge({ index: 1, text: String(pending > 99 ? '99+' : pending) })
+      uni.setTabBarBadge({ index: 1, text: String(pending > 99 ? '99+' : pending), fail() {} })
     } else {
-      try { uni.removeTabBarBadge({ index: 1 }) } catch {}
+      uni.removeTabBarBadge({ index: 1, fail() {} })
     }
   } catch {}
 }
