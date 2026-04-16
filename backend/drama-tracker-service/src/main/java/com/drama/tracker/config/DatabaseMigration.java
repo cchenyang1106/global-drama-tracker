@@ -43,6 +43,9 @@ public class DatabaseMigration implements CommandLineRunner {
 
             // 预置示范数据（确保广场不为空，仅首次插入）
             insertSampleDataIfEmpty(conn, stmt);
+
+            // 清理现有活动中的审核敏感词
+            sanitizeExistingContent(stmt);
         } catch (Exception e) {
             log.warn("数据库迁移执行异常（可忽略）: {}", e.getMessage());
         }
@@ -130,6 +133,28 @@ public class DatabaseMigration implements CommandLineRunner {
             log.info("数据库迁移：预置示范数据插入成功（3个用户 + 5个活动）");
         } catch (Exception e) {
             log.warn("预置示范数据插入异常（可忽略）: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * 清理现有活动和用户数据中的审核敏感词汇（搭子→伙伴，组队→加入，一起玩→参与活动）。
+     */
+    private void sanitizeExistingContent(Statement stmt) {
+        try {
+            String[][] replacements = {
+                {"搭子", "伙伴"}, {"找搭子", "找伙伴"}, {"组队", "加入"},
+                {"一起玩", "参与活动"}, {"约起来", "一起参与"}
+            };
+            int total = 0;
+            for (String[] r : replacements) {
+                total += stmt.executeUpdate("UPDATE activity SET title = REPLACE(title, '" + r[0] + "', '" + r[1] + "') WHERE title LIKE '%" + r[0] + "%'");
+                total += stmt.executeUpdate("UPDATE activity SET description = REPLACE(description, '" + r[0] + "', '" + r[1] + "') WHERE description LIKE '%" + r[0] + "%'");
+            }
+            if (total > 0) {
+                log.info("数据库迁移：清理审核敏感词完成，更新了 {} 条记录", total);
+            }
+        } catch (Exception e) {
+            log.warn("清理审核敏感词异常（可忽略）: {}", e.getMessage());
         }
     }
 
