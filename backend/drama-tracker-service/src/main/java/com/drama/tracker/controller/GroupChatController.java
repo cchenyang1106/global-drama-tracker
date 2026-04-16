@@ -3,7 +3,7 @@ package com.drama.tracker.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.drama.tracker.common.result.Result;
-import com.drama.tracker.common.util.SensitiveWordFilter;
+import com.drama.tracker.common.util.ContentSecurityChecker;
 import com.drama.tracker.dao.entity.*;
 import com.drama.tracker.dao.mapper.*;
 import io.jsonwebtoken.Jwts;
@@ -26,6 +26,7 @@ public class GroupChatController {
     @Autowired private GroupMessageMapper messageMapper;
     @Autowired private UserMapper userMapper;
     @Autowired private ActivityMapper activityMapper;
+    @Autowired private ContentSecurityChecker contentSecurityChecker;
 
     @Value("${jwt.secret:drama-tracker-jwt-secret}")
     private String jwtSecret;
@@ -153,8 +154,8 @@ public class GroupChatController {
                 .eq(GroupMemberInfo::getGroupId, groupId).eq(GroupMemberInfo::getUserId, userId));
         if (isMember == 0) return Result.fail(403, "你不是该群成员");
 
-        // 敏感词过滤
-        content = SensitiveWordFilter.filter(content);
+        // 敏感词过滤（本地替换）
+        content = contentSecurityChecker.filter(content);
 
         GroupMessage msg = new GroupMessage();
         msg.setGroupId(groupId);

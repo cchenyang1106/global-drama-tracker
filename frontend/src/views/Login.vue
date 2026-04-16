@@ -2,7 +2,7 @@
   <div class="login-page">
     <div class="login-card">
       <h1>{{ isRegister ? '📝 注册账号' : '🎯 登录' }}</h1>
-      <p class="subtitle">趣活圈 · 发现身边的精彩活动</p>
+      <p class="subtitle">同好出发 · 发现身边的精彩活动</p>
 
       <el-form class="login-form" @submit.prevent="handleSubmit">
         <el-form-item>

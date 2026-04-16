@@ -1,7 +1,7 @@
 <template>
   <div class="home-page">
     <section class="hero">
-      <h1>趣活圈，发现精彩活动 🎯</h1>
+      <h1>同好出发，发现精彩活动 🎯</h1>
       <p>发布你的活动需求，找到一起参与活动的小伙伴</p>
       <div class="search-row">
         <el-input v-model="keyword" placeholder="搜索活动..." :prefix-icon="Search" clearable

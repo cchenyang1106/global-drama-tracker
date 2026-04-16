@@ -1,11 +1,11 @@
 <template>
   <view class="page">
-    <text class="h1">趣活圈用户协议</text>
+    <text class="h1">同好出发用户协议</text>
     <text class="p">更新日期：2026年4月14日</text>
     <text class="p">生效日期：2026年4月14日</text>
 
     <text class="h2">一、服务说明</text>
-    <text class="p">趣活圈是一款活动信息发布与查询工具，帮助用户发现并参与感兴趣的活动。本协议是您与趣活圈之间关于使用本服务的约定。</text>
+    <text class="p">同好出发是一款活动信息发布与查询工具，帮助用户发现并参与感兴趣的活动。本协议是您与同好出发之间关于使用本服务的约定。</text>
 
     <text class="h2">二、账号注册</text>
     <text class="p">1. 您需要使用真实的手机号注册账号，每个手机号只能注册一个账号。</text>

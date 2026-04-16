@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.drama.tracker.common.result.Result;
 import com.drama.tracker.common.util.AesUtil;
-import com.drama.tracker.common.util.SensitiveWordFilter;
+import com.drama.tracker.common.util.ContentSecurityChecker;
 import com.drama.tracker.dao.entity.*;
 import com.drama.tracker.dao.mapper.*;
 import io.jsonwebtoken.Jwts;
@@ -31,6 +31,7 @@ public class MatchController {
     private final ChatMessageMapper chatMapper;
     private final UserMapper userMapper;
     private final UserProfileMapper profileMapper;
+    private final ContentSecurityChecker contentSecurityChecker;
 
     @Value("${jwt.secret:drama-tracker-jwt-secret}")
     private String jwtSecret;
@@ -243,7 +244,7 @@ public class MatchController {
 
         Long receiverId = mr.getFromUserId().equals(userId) ? mr.getToUserId() : mr.getFromUserId();
 
-        String content = SensitiveWordFilter.filter((String) body.get("content"));
+        String content = contentSecurityChecker.filter((String) body.get("content"));
 
         ChatMessage msg = new ChatMessage();
         msg.setMatchId(matchId);

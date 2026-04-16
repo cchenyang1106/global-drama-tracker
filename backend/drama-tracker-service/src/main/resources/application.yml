@@ -72,9 +72,14 @@ jwt:
   header: Authorization
   prefix: Bearer
 
+# 微信小程序配置
+wechat:
+  appid: wx91ba2fb65ba5a1a8
+  secret: ${WECHAT_SECRET:}
+
 # 自定义配置
 app:
-  name: 趣活圈
+  name: 同好出发
   version: 2.0.0
   admin:
     username: admin

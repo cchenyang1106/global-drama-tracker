@@ -2,6 +2,7 @@ package com.drama.tracker.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.drama.tracker.common.result.Result;
+import com.drama.tracker.common.util.ContentSecurityChecker;
 import com.drama.tracker.dao.entity.User;
 import com.drama.tracker.dao.entity.UserProfile;
 import com.drama.tracker.dao.mapper.UserMapper;
@@ -27,6 +28,7 @@ public class ProfileController {
 
     private final UserProfileMapper profileMapper;
     private final UserMapper userMapper;
+    private final ContentSecurityChecker contentSecurityChecker;
 
     @Value("${jwt.secret:drama-tracker-jwt-secret}")
     private String jwtSecret;
@@ -85,6 +87,16 @@ public class ProfileController {
                                       @RequestBody Map<String, Object> body) {
         Long userId = getUserIdFromToken(auth);
         if (userId == null) return Result.fail(401, "请先登录");
+
+        // 内容安全检查（昵称、简介、爱好等文本字段）
+        String[] textFields = {"nickname", "realName", "bio", "hobbies", "tags", "occupation"};
+        for (String field : textFields) {
+            if (body.containsKey(field) && body.get(field) != null) {
+                String secResult = contentSecurityChecker.check(
+                        body.get(field).toString(), ContentSecurityChecker.SCENE_PROFILE);
+                if (secResult != null) return Result.fail(secResult);
+            }
+        }
 
         UserProfile profile = profileMapper.selectOne(
                 new LambdaQueryWrapper<UserProfile>().eq(UserProfile::getUserId, userId));

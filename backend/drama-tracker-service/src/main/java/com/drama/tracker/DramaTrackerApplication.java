@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import java.util.TimeZone;
 
 /**
- * 趣活圈平台启动类。
+ * 同好出发平台启动类。
  */
 @SpringBootApplication
 @EnableScheduling

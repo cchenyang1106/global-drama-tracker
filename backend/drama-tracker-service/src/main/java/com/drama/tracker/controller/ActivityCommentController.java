@@ -3,7 +3,7 @@ package com.drama.tracker.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.drama.tracker.common.result.Result;
-import com.drama.tracker.common.util.SensitiveWordFilter;
+import com.drama.tracker.common.util.ContentSecurityChecker;
 import com.drama.tracker.dao.entity.Activity;
 import com.drama.tracker.dao.entity.ActivityComment;
 import com.drama.tracker.dao.entity.User;
@@ -34,6 +34,7 @@ public class ActivityCommentController {
     private final ActivityMapper activityMapper;
     private final UserMapper userMapper;
     private final UserProfileMapper profileMapper;
+    private final ContentSecurityChecker contentSecurityChecker;
 
     @Value("${jwt.secret:drama-tracker-jwt-secret}")
     private String jwtSecret;
@@ -94,8 +95,8 @@ public class ActivityCommentController {
         if (userId == null) return Result.fail(401, "请先登录");
 
         String content = (String) body.get("content");
-        String badWord = SensitiveWordFilter.detect(content);
-        if (badWord != null) return Result.fail("评论包含违规词汇「" + badWord + "」，请修改");
+        String secResult = contentSecurityChecker.check(content, ContentSecurityChecker.SCENE_COMMENT);
+        if (secResult != null) return Result.fail(secResult);
 
         ActivityComment c = new ActivityComment();
         c.setActivityId(Long.valueOf(body.get("activityId").toString()));

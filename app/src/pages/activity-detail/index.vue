@@ -87,6 +87,13 @@
         <text class="status-step done">✅ 已通过 ✓</text>
         <text class="status-step done">🔓 已解锁 ✓</text>
       </view>
+
+      <!-- 活动倒计时 -->
+      <view v-if="activity.activityTime && countdownText" style="margin-top:16rpx;padding:16rpx 20rpx;background:linear-gradient(135deg,#fef3f8,#f0e6ff);border-radius:16rpx;text-align:center;">
+        <text style="font-size:24rpx;color:#7c5270;display:block;">⏰ 距活动开始</text>
+        <text style="font-size:32rpx;font-weight:700;color:#c084fc;display:block;margin-top:4rpx;">{{ countdownText }}</text>
+      </view>
+
       <!-- 联系方式 -->
       <view v-if="contactInfo" style="margin-top:16rpx;padding:20rpx;background:#ecfdf5;border-radius:16rpx;border:1px solid #a7f3d0;">
         <text style="font-size:26rpx;color:#065f46;font-weight:700;display:block;margin-bottom:8rpx;">🔗 活动联系方式</text>
@@ -96,14 +103,57 @@
       <view v-else style="margin-top:16rpx;text-align:center;">
         <text style="font-size:24rpx;color:#b8929e;">发布人暂未设置联系方式</text>
       </view>
+
       <!-- 公告 -->
       <view v-if="activity.announcement" style="margin-top:16rpx;padding:16rpx;background:#fef9f0;border-radius:12rpx;border:1px dashed #fbbf24;">
         <text style="font-size:24rpx;color:#92400e;font-weight:600;display:block;margin-bottom:4rpx;">📢 活动公告</text>
         <text style="font-size:26rpx;color:#78350f;line-height:1.6;">{{ activity.announcement }}</text>
       </view>
     </view>
+
+    <!-- 通过后：活动成员 -->
+    <view class="card" v-if="applyStatus === 1 || isOwner">
+      <text class="section-title">👥 活动成员（{{ members.length }}人）</text>
+      <view style="display:flex;flex-wrap:wrap;gap:16rpx;">
+        <view v-for="m in members" :key="m.userId" class="member-item" @tap="goUser(m.userId)">
+          <view class="avatar-sm">{{ (m.nickname || '?').charAt(0) }}</view>
+          <view>
+            <text style="font-size:24rpx;color:#4a2040;font-weight:600;display:block;">{{ m.nickname }}</text>
+            <text style="font-size:20rpx;color:#b8929e;">{{ m.role }}{{ m.city ? ' · ' + m.city : '' }}</text>
+          </view>
+        </view>
+      </view>
+      <view v-if="members.length === 0" style="text-align:center;padding:20rpx;">
+        <text style="font-size:24rpx;color:#b8929e;">暂无通过的成员</text>
+      </view>
+    </view>
+
+    <!-- 通过后：留言板 -->
+    <view class="card" v-if="applyStatus === 1 || isOwner">
+      <text class="section-title">💬 活动留言板</text>
+      <!-- 发留言 -->
+      <view style="display:flex;gap:12rpx;margin-bottom:16rpx;">
+        <input v-model="newMessage" placeholder="说点什么..." maxlength="200"
+          style="flex:1;background:#fff5f7;border:1px solid #fce4ec;border-radius:24rpx;padding:12rpx 20rpx;font-size:26rpx;color:#4a2040;" />
+        <button class="btn-send" @tap="sendMessage" :disabled="!newMessage.trim()">发送</button>
+      </view>
+      <!-- 留言列表 -->
+      <view v-if="messages.length === 0" style="text-align:center;padding:20rpx;">
+        <text style="font-size:24rpx;color:#b8929e;">暂无留言，来第一个发言吧~</text>
+      </view>
+      <view v-for="msg in messages" :key="msg.id" class="msg-item">
+        <view style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4rpx;">
+          <view style="display:flex;align-items:center;gap:8rpx;">
+            <text style="font-size:24rpx;font-weight:600;color:#4a2040;" @tap="goUser(msg.userId)">{{ msg.nickname }}</text>
+            <text v-if="msg.isOwner" style="font-size:18rpx;color:#fff;background:#f472b6;padding:2rpx 8rpx;border-radius:8rpx;">发起人</text>
+          </view>
+          <text style="font-size:20rpx;color:#ccc;">{{ formatMsgTime(msg.createTime) }}</text>
+        </view>
+        <text style="font-size:26rpx;color:#4a2040;line-height:1.6;">{{ msg.content }}</text>
+      </view>
+    </view>
     <!-- 未通过 -->
-    <view class="card status-card" v-else-if="applyStatus === 2">
+    <view class="card status-card" v-if="applyStatus === 2 && !isOwner">
       <text style="color:#e11d48;font-weight:700;">❌ 答卷未通过</text>
       <text style="font-size:24rpx;color:#b8929e;display:block;margin-top:8rpx;">没关系，去看看其他活动吧，总有适合你的活动~</text>
     </view>
@@ -130,8 +180,8 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { onLoad, onShow } from '@dcloudio/uni-app'
+import { ref, computed, onUnmounted } from 'vue'
+import { onLoad, onShow, onHide } from '@dcloudio/uni-app'
 import { getActivityDetail } from '@/api/activity'
 import { applyActivity, getSentRequests } from '@/api/match'
 import { request } from '@/api/request'
@@ -142,7 +192,12 @@ const applying = ref(false)
 const applyStatus = ref(-1)
 const matchId = ref(null)
 const contactInfo = ref('')
+const members = ref([])
+const messages = ref([])
+const newMessage = ref('')
+const countdownText = ref('')
 let activityId = null
+let countdownTimer = null
 
 // 举报
 const showReport = ref(false)
@@ -196,9 +251,65 @@ async function loadContactInfo() {
   } catch {}
 }
 
-function goChat() {
-  if (matchId.value) uni.navigateTo({ url: `/pages/chat/index?matchId=${matchId.value}` })
-  else uni.showToast({ title: '聊天信息加载中', icon: 'none' })
+// 加载活动成员
+async function loadMembers() {
+  if (!activityId || !isLoggedIn.value) return
+  try {
+    const res = await request({ url: `/activity/members/${activityId}`, needAuth: true })
+    members.value = res || []
+  } catch { members.value = [] }
+}
+
+// 加载留言板
+async function loadMessages() {
+  if (!activityId || !isLoggedIn.value) return
+  try {
+    const res = await request({ url: `/activity/messages/${activityId}`, needAuth: true })
+    messages.value = (res && res.records) ? res.records : []
+  } catch { messages.value = [] }
+}
+
+// 发送留言
+async function sendMessage() {
+  if (!newMessage.value.trim()) return
+  try {
+    await request({ url: `/activity/messages/${activityId}`, method: 'POST', needAuth: true,
+      data: { content: newMessage.value.trim() } })
+    newMessage.value = ''
+    loadMessages()
+  } catch (e) { uni.showToast({ title: e?.message || '发送失败', icon: 'none' }) }
+}
+
+// 留言时间格式化
+function formatMsgTime(time) {
+  if (!time) return ''
+  const d = new Date(time.replace(/-/g, '/'))
+  const now = new Date()
+  const diffMs = now - d
+  if (diffMs < 60000) return '刚刚'
+  if (diffMs < 3600000) return Math.floor(diffMs / 60000) + '分钟前'
+  if (diffMs < 86400000) return Math.floor(diffMs / 3600000) + '小时前'
+  return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0')
+}
+
+// 活动倒计时
+function startCountdown() {
+  if (countdownTimer) clearInterval(countdownTimer)
+  countdownTimer = setInterval(updateCountdown, 1000)
+  updateCountdown()
+}
+function updateCountdown() {
+  const timeStr = activity.value?.activityTime
+  if (!timeStr) { countdownText.value = ''; return }
+  const target = new Date(timeStr.replace(/-/g, '/'))
+  if (isNaN(target.getTime())) { countdownText.value = ''; return }
+  const diff = target - new Date()
+  if (diff <= 0) { countdownText.value = '活动已开始'; return }
+  const days = Math.floor(diff / 86400000)
+  const hours = Math.floor((diff % 86400000) / 3600000)
+  const mins = Math.floor((diff % 3600000) / 60000)
+  const secs = Math.floor((diff % 60000) / 1000)
+  countdownText.value = (days > 0 ? days + '天 ' : '') + hours + '小时 ' + mins + '分 ' + secs + '秒'
 }
 async function doTeamComplete() {
   uni.showModal({
@@ -266,11 +377,19 @@ async function refreshData() {
     if (applyStatus.value === 1 && !isOwner.value) {
       loadContactInfo()
     }
+    // 通过后或发布人，加载成员+留言
+    if (applyStatus.value === 1 || isOwner.value) {
+      loadMembers()
+      loadMessages()
+      startCountdown()
+    }
   }
 }
 
 onLoad((options) => { activityId = options?.id })
 onShow(() => { refreshData() })
+onHide(() => { if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null } })
+onUnmounted(() => { if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null } })
 </script>
 
 <style scoped>
@@ -311,4 +430,12 @@ onShow(() => { refreshData() })
 .popup-content { background: #fff; border-radius: 24rpx; padding: 32rpx; width: 600rpx; max-height: 80vh; overflow-y: auto; }
 .popup-title { font-size: 32rpx; font-weight: 700; color: #4a2040; display: block; margin-bottom: 8rpx; text-align: center; }
 .reason-item { padding: 16rpx 20rpx; border: 1px solid #fce4ec; border-radius: 12rpx; margin-bottom: 12rpx; font-size: 28rpx; color: #4a2040; }
+
+/* 活动成员 */
+.member-item { display: flex; gap: 10rpx; align-items: center; background: #fef7fa; border-radius: 12rpx; padding: 10rpx 16rpx; min-width: 200rpx; }
+
+/* 留言板 */
+.msg-item { padding: 16rpx; border-bottom: 1px solid #fce4ec; }
+.msg-item:last-child { border-bottom: none; }
+.btn-send { background: linear-gradient(135deg,#f472b6,#c084fc); color: #fff; border: none; border-radius: 24rpx; font-size: 26rpx; padding: 0 28rpx; height: 64rpx; line-height: 64rpx; flex-shrink: 0; }
 </style>

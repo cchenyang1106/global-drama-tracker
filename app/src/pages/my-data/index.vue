@@ -14,7 +14,7 @@
 
       <view class="section">
         <text class="h3" style="color:#e11d48;">⚠️ 注销账号</text>
-        <text class="p">注销后将永久删除你的所有数据，包括个人资料、发布的活动、评论和聊天记录。此操作不可撤销。</text>
+        <text class="p">注销后将永久删除你的所有数据，包括个人资料、发布的活动和留言记录。此操作不可撤销。</text>
         <button class="btn-danger" @click="confirmDelete">注销我的账号</button>
       </view>
     </view>

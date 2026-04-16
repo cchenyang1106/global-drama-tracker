@@ -2,7 +2,7 @@ package com.drama.tracker.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.drama.tracker.common.result.Result;
-import com.drama.tracker.common.util.SensitiveWordFilter;
+import com.drama.tracker.common.util.ContentSecurityChecker;
 import com.drama.tracker.dao.entity.*;
 import com.drama.tracker.dao.mapper.*;
 import io.jsonwebtoken.Jwts;
@@ -29,6 +29,7 @@ public class QuizController {
     @Autowired private GroupChatMapper groupChatMapper;
     @Autowired private GroupMemberInfoMapper groupMemberMapper;
     @Autowired private MatchRequestMapper matchRequestMapper;
+    @Autowired private ContentSecurityChecker contentSecurityChecker;
 
     @Value("${jwt.secret:drama-tracker-jwt-secret}")
     private String jwtSecret;
@@ -55,10 +56,10 @@ public class QuizController {
             return Result.fail("每个活动最多只能设置10道题目");
         }
 
-        // 敏感词检查
+        // 内容安全检查（本地 + 微信）
         String text = (String) body.get("questionText");
-        String bad = SensitiveWordFilter.detect(text);
-        if (bad != null) return Result.fail("题目包含违规词汇「" + bad + "」");
+        String secResult = contentSecurityChecker.check(text, ContentSecurityChecker.SCENE_FORUM);
+        if (secResult != null) return Result.fail(secResult);
 
         ActivityQuiz quiz = new ActivityQuiz();
         if (body.get("id") != null) {
@@ -135,8 +136,8 @@ public class QuizController {
 
         for (Map<String, Object> ans : answers) {
             String ansText = (String) ans.get("answerText");
-            String bad = SensitiveWordFilter.detect(ansText);
-            if (bad != null) return Result.fail("答案包含违规词汇「" + bad + "」");
+            String secResult = contentSecurityChecker.check(ansText, ContentSecurityChecker.SCENE_FORUM);
+            if (secResult != null) return Result.fail(secResult);
 
             QuizAnswer qa = new QuizAnswer();
             qa.setActivityId(activityId);

@@ -3,13 +3,15 @@ package com.drama.tracker.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.drama.tracker.common.result.Result;
-import com.drama.tracker.common.util.SensitiveWordFilter;
+import com.drama.tracker.common.util.ContentSecurityChecker;
 import com.drama.tracker.dao.entity.Activity;
+import com.drama.tracker.dao.entity.ActivityMessage;
 import com.drama.tracker.dao.entity.ActivityQuiz;
 import com.drama.tracker.dao.entity.MatchRequest;
 import com.drama.tracker.dao.entity.User;
 import com.drama.tracker.dao.entity.UserProfile;
 import com.drama.tracker.dao.mapper.ActivityMapper;
+import com.drama.tracker.dao.mapper.ActivityMessageMapper;
 import com.drama.tracker.dao.mapper.ActivityQuizMapper;
 import com.drama.tracker.dao.mapper.MatchRequestMapper;
 import com.drama.tracker.dao.mapper.UserMapper;
@@ -35,9 +37,11 @@ public class ActivityController {
 
     private final ActivityMapper activityMapper;
     private final ActivityQuizMapper quizMapper;
+    private final ActivityMessageMapper messageMapper;
     private final UserMapper userMapper;
     private final UserProfileMapper profileMapper;
     private final MatchRequestMapper matchRequestMapper;
+    private final ContentSecurityChecker contentSecurityChecker;
 
     @Value("${jwt.secret:drama-tracker-jwt-secret}")
     private String jwtSecret;
@@ -138,12 +142,12 @@ public class ActivityController {
         Long userId = getUserIdFromToken(auth);
         if (userId == null) return Result.fail(401, "请先登录");
 
-        // 敏感词检查
+        // 内容安全检查（本地敏感词 + 微信 msgSecCheck）
         String title = (String) body.get("title");
         String desc = (String) body.get("description");
-        String badWord = SensitiveWordFilter.detect(title);
-        if (badWord == null) badWord = SensitiveWordFilter.detect(desc);
-        if (badWord != null) return Result.fail("内容包含违规词汇「" + badWord + "」，请修改后重试");
+        String secResult = contentSecurityChecker.check(title, ContentSecurityChecker.SCENE_FORUM);
+        if (secResult == null) secResult = contentSecurityChecker.check(desc, ContentSecurityChecker.SCENE_FORUM);
+        if (secResult != null) return Result.fail(secResult);
 
         Activity a = new Activity();
         a.setUserId(userId);
@@ -214,7 +218,11 @@ public class ActivityController {
         Activity a = activityMapper.selectById(id);
         if (a == null) return Result.fail(404, "活动不存在");
         if (!a.getUserId().equals(userId)) return Result.fail(403, "只有发布人可以更新公告");
-        a.setAnnouncement((String) body.get("announcement"));
+        // 内容安全检查
+        String announcement = (String) body.get("announcement");
+        String secResult = contentSecurityChecker.check(announcement, ContentSecurityChecker.SCENE_FORUM);
+        if (secResult != null) return Result.fail(secResult);
+        a.setAnnouncement(announcement);
         activityMapper.updateById(a);
         return Result.success("公告已更新");
     }
@@ -238,6 +246,138 @@ public class ActivityController {
                 .eq(MatchRequest::getActivityId, id).eq(MatchRequest::getFromUserId, userId));
         if (mr == null || mr.getStatus() != 1) return Result.fail(403, "需通过活动审核后才能查看");
         return Result.success(a.getContactInfo());
+    }
+
+    /**
+     * 获取活动已通过成员列表（仅通过审核的参与者和发布人可见）。
+     */
+    @Operation(summary = "活动成员列表")
+    @GetMapping("/members/{id}")
+    public Result<?> getMembers(@RequestHeader(value = "Authorization", required = false) String auth,
+                                @PathVariable Long id) {
+        Long userId = getUserIdFromToken(auth);
+        if (userId == null) return Result.fail(401, "请先登录");
+        Activity a = activityMapper.selectById(id);
+        if (a == null) return Result.fail(404, "活动不存在");
+
+        // 权限校验：发布人或已通过成员
+        if (!a.getUserId().equals(userId)) {
+            MatchRequest mr = matchRequestMapper.selectOne(new LambdaQueryWrapper<MatchRequest>()
+                    .eq(MatchRequest::getActivityId, id).eq(MatchRequest::getFromUserId, userId));
+            if (mr == null || mr.getStatus() != 1) return Result.fail(403, "需通过活动审核后才能查看");
+        }
+
+        // 查询所有通过的成员
+        List<MatchRequest> passed = matchRequestMapper.selectList(new LambdaQueryWrapper<MatchRequest>()
+                .eq(MatchRequest::getActivityId, id).eq(MatchRequest::getStatus, 1));
+
+        List<Map<String, Object>> members = new ArrayList<>();
+        // 发布人作为第一个成员
+        User owner = userMapper.selectById(a.getUserId());
+        UserProfile ownerProfile = profileMapper.selectOne(
+                new LambdaQueryWrapper<UserProfile>().eq(UserProfile::getUserId, a.getUserId()));
+        Map<String, Object> ownerMap = new LinkedHashMap<>();
+        ownerMap.put("userId", a.getUserId());
+        ownerMap.put("nickname", owner != null ? owner.getNickname() : "发布人");
+        ownerMap.put("gender", ownerProfile != null ? ownerProfile.getGender() : null);
+        ownerMap.put("city", ownerProfile != null ? ownerProfile.getCity() : null);
+        ownerMap.put("role", "发起人");
+        members.add(ownerMap);
+
+        for (MatchRequest mr : passed) {
+            User u = userMapper.selectById(mr.getFromUserId());
+            UserProfile p = profileMapper.selectOne(
+                    new LambdaQueryWrapper<UserProfile>().eq(UserProfile::getUserId, mr.getFromUserId()));
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("userId", mr.getFromUserId());
+            m.put("nickname", u != null ? u.getNickname() : "成员");
+            m.put("gender", p != null ? p.getGender() : null);
+            m.put("city", p != null ? p.getCity() : null);
+            m.put("role", "成员");
+            members.add(m);
+        }
+        return Result.success(members);
+    }
+
+    /**
+     * 获取活动留言板（仅通过审核的参与者和发布人可见）。
+     */
+    @Operation(summary = "活动留言板列表")
+    @GetMapping("/messages/{id}")
+    public Result<?> getMessages(@RequestHeader(value = "Authorization", required = false) String auth,
+                                  @PathVariable Long id,
+                                  @RequestParam(defaultValue = "1") Integer page,
+                                  @RequestParam(defaultValue = "50") Integer size) {
+        Long userId = getUserIdFromToken(auth);
+        if (userId == null) return Result.fail(401, "请先登录");
+        Activity a = activityMapper.selectById(id);
+        if (a == null) return Result.fail(404, "活动不存在");
+
+        // 权限校验
+        if (!a.getUserId().equals(userId)) {
+            MatchRequest mr = matchRequestMapper.selectOne(new LambdaQueryWrapper<MatchRequest>()
+                    .eq(MatchRequest::getActivityId, id).eq(MatchRequest::getFromUserId, userId));
+            if (mr == null || mr.getStatus() != 1) return Result.fail(403, "需通过活动审核后才能查看");
+        }
+
+        var pageResult = messageMapper.selectPage(
+                new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(page, size),
+                new LambdaQueryWrapper<ActivityMessage>()
+                        .eq(ActivityMessage::getActivityId, id)
+                        .orderByDesc(ActivityMessage::getCreateTime));
+
+        List<Map<String, Object>> messages = new ArrayList<>();
+        for (ActivityMessage msg : pageResult.getRecords()) {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", msg.getId());
+            m.put("userId", msg.getUserId());
+            m.put("content", msg.getContent());
+            m.put("createTime", msg.getCreateTime());
+            User u = userMapper.selectById(msg.getUserId());
+            m.put("nickname", u != null ? u.getNickname() : "匿名");
+            m.put("isOwner", msg.getUserId().equals(a.getUserId()));
+            messages.add(m);
+        }
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("records", messages);
+        result.put("total", pageResult.getTotal());
+        return Result.success(result);
+    }
+
+    /**
+     * 发送活动留言（仅通过审核的参与者和发布人可发）。
+     */
+    @Operation(summary = "发送活动留言")
+    @PostMapping("/messages/{id}")
+    public Result<?> postMessage(@RequestHeader(value = "Authorization", required = false) String auth,
+                                  @PathVariable Long id, @RequestBody Map<String, Object> body) {
+        Long userId = getUserIdFromToken(auth);
+        if (userId == null) return Result.fail(401, "请先登录");
+        Activity a = activityMapper.selectById(id);
+        if (a == null) return Result.fail(404, "活动不存在");
+
+        // 权限校验
+        if (!a.getUserId().equals(userId)) {
+            MatchRequest mr = matchRequestMapper.selectOne(new LambdaQueryWrapper<MatchRequest>()
+                    .eq(MatchRequest::getActivityId, id).eq(MatchRequest::getFromUserId, userId));
+            if (mr == null || mr.getStatus() != 1) return Result.fail(403, "需通过活动审核后才能留言");
+        }
+
+        String content = (String) body.get("content");
+        if (content == null || content.trim().isEmpty()) return Result.fail("留言内容不能为空");
+
+        // 内容安全检查
+        String secResult = contentSecurityChecker.check(content, ContentSecurityChecker.SCENE_COMMENT);
+        if (secResult != null) return Result.fail(secResult);
+
+        ActivityMessage msg = new ActivityMessage();
+        msg.setActivityId(id);
+        msg.setUserId(userId);
+        msg.setContent(content.trim());
+        messageMapper.insert(msg);
+
+        return Result.success("留言成功");
     }
 
     private Map<String, Object> activityToMap(Activity a) {

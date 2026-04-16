@@ -1,7 +1,7 @@
 <template>
   <view class="page">
     <view class="hero">
-      <text class="hero-title">趣活圈，发现精彩活动 🎯</text>
+      <text class="hero-title">同好出发，发现精彩活动 🎯</text>
       <view class="search-bar">
         <input class="search-input" v-model="keyword" placeholder="搜索活动..." @confirm="loadData()" />
       </view>
@@ -32,7 +32,12 @@
           <text>👥{{ item.joinedCount || 0 }}/{{ item.maxPeople || 1 }}</text>
         </view>
       </view>
-      <view v-if="list.length === 0 && !loading" class="empty">暂无活动，快来发布第一个吧！</view>
+      <view v-if="list.length === 0 && !loading" class="empty">
+        <text style="display:block;font-size:48rpx;margin-bottom:16rpx;">🎯</text>
+        <text style="display:block;color:#7c5270;font-size:30rpx;font-weight:600;margin-bottom:8rpx;">发现精彩活动</text>
+        <text style="display:block;color:#b8929e;font-size:26rpx;margin-bottom:24rpx;">这里暂时还没有活动，快来发布第一个吧</text>
+        <button style="background:linear-gradient(135deg,#f472b6,#c084fc);color:#fff;border:none;border-radius:40rpx;font-size:28rpx;font-weight:600;padding:12rpx 48rpx;" @tap="goPublish">发布活动</button>
+      </view>
     </view>
 
     <view class="fab" @tap="goPublish">✏️</view>
