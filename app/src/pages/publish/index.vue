@@ -50,7 +50,7 @@
     </view>
 
     <view class="card">
-      <text class="form-title">发布活动</text>
+      <text class="form-title">{{ isEdit ? '编辑活动' : '发布活动' }}</text>
 
       <view class="field"><text class="label">标题 *</text>
         <input v-model="form.title" placeholder="一句话描述活动" maxlength="50" class="input" @input="saveDraft" />
@@ -118,7 +118,7 @@
         <input v-model="form.preferTags" placeholder="如：户外,摄影（留空不限）" class="input" />
       </view>
 
-      <button class="btn-primary" @tap="submit" :disabled="submitting">{{ submitting ? '发布中...' : '发布活动' }}</button>
+      <button class="btn-primary" @tap="submit" :disabled="submitting">{{ submitting ? (isEdit ? '保存中...' : '发布中...') : (isEdit ? '保存修改' : '发布活动') }}</button>
 
       <view v-if="hasDraft" style="text-align:center;margin-top:16rpx;">
         <text style="font-size:22rpx;color:#b8929e;" @tap="clearDraft">清除草稿</text>
@@ -129,19 +129,57 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
 import { request } from '@/api/request'
 
 const categories = ['旅游', '运动', '美食', '学习', '游戏', '追星', '其他']
 const submitting = ref(false)
 const hasDraft = ref(false)
 const showRules = ref(true)
+const isEdit = ref(false)
+let editId = null
+
 const form = reactive({
   title: '', category: '旅游', description: '', location: '', activityTime: '',
   maxPeople: '', tags: '', contactInfo: '', preferGender: 0, preferAgeMin: '', preferAgeMax: '',
   preferCity: '', preferTags: ''
 })
 
+onLoad((options) => {
+  if (options?.activityId) {
+    isEdit.value = true
+    editId = options.activityId
+    showRules.value = false
+    uni.setNavigationBarTitle({ title: '编辑活动' })
+    loadActivity(editId)
+  } else {
+    loadDraft()
+  }
+})
+
+async function loadActivity(id) {
+  try {
+    const data = await request({ url: `/activity/${id}` })
+    if (data) {
+      form.title = data.title || ''
+      form.category = data.category || '旅游'
+      form.description = data.description || ''
+      form.location = data.location || ''
+      form.activityTime = data.activityTime || ''
+      form.maxPeople = data.maxPeople ? String(data.maxPeople) : ''
+      form.tags = data.tags || ''
+      form.contactInfo = data.contactInfo || ''
+      form.preferGender = data.preferGender || 0
+      form.preferAgeMin = data.preferAgeMin ? String(data.preferAgeMin) : ''
+      form.preferAgeMax = data.preferAgeMax ? String(data.preferAgeMax) : ''
+      form.preferCity = data.preferCity || ''
+      form.preferTags = data.preferTags || ''
+    }
+  } catch (e) { uni.showToast({ title: '加载失败', icon: 'none' }) }
+}
+
 function saveDraft() {
+  if (isEdit.value) return
   uni.setStorageSync('publish_draft', JSON.stringify(form))
   hasDraft.value = true
 }
@@ -171,15 +209,20 @@ async function submit() {
     const data = { ...form, maxPeople: form.maxPeople ? parseInt(form.maxPeople) : 1,
       preferAgeMin: form.preferAgeMin ? parseInt(form.preferAgeMin) : null,
       preferAgeMax: form.preferAgeMax ? parseInt(form.preferAgeMax) : null }
-    const id = await request({ url: '/activity/publish', method: 'POST', data, needAuth: true })
-    uni.removeStorageSync('publish_draft')
-    uni.showToast({ title: '发布成功', icon: 'success' })
-    setTimeout(() => uni.redirectTo({ url: `/pages/activity-detail/index?id=${id}` }), 500)
-  } catch (e) { uni.showToast({ title: e?.message || '发布失败', icon: 'none' }) }
+
+    if (isEdit.value) {
+      await request({ url: `/activity/update/${editId}`, method: 'POST', data, needAuth: true })
+      uni.showToast({ title: '保存成功', icon: 'success' })
+      setTimeout(() => uni.navigateBack(), 500)
+    } else {
+      const id = await request({ url: '/activity/publish', method: 'POST', data, needAuth: true })
+      uni.removeStorageSync('publish_draft')
+      uni.showToast({ title: '发布成功', icon: 'success' })
+      setTimeout(() => uni.redirectTo({ url: `/pages/activity-detail/index?id=${id}` }), 500)
+    }
+  } catch (e) { uni.showToast({ title: e?.message || '操作失败', icon: 'none' }) }
   submitting.value = false
 }
-
-onMounted(loadDraft)
 </script>
 
 <style scoped>

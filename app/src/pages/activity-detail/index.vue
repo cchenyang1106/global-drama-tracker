@@ -57,11 +57,12 @@
     <view class="card" v-else-if="isOwner">
       <text style="color:#7c5270;font-size:28rpx;display:block;margin-bottom:16rpx;">📋 你是发布人</text>
       <view style="display:flex;flex-direction:column;gap:12rpx;">
+        <button class="btn-outline" @tap="goTo(`/pages/publish/index?activityId=${activity.id}`)">📝 编辑活动信息</button>
         <button class="btn-outline" @tap="goTo(`/pages/quiz-edit/index?activityId=${activity.id}`)">✏️ 出题 / 编辑题目</button>
         <button class="btn-outline" @tap="goTo(`/pages/quiz-papers/index?activityId=${activity.id}`)">📊 查看答卷 / 批改</button>
         <button class="btn-outline" @tap="editAnnouncement">📢 发布/更新公告</button>
         <button v-if="activity.teamComplete !== 1 && activity.status === 1" class="btn-primary" @tap="doTeamComplete">🔒 标记为满员（停止接受申请）</button>
-        <button v-if="activity.teamComplete === 1" class="btn-danger-outline" @tap="doDeleteActivity">🗑 删除此活动</button>
+        <button class="btn-danger-outline" @tap="doDeleteActivity">🗑 删除此活动</button>
       </view>
       <!-- 当前公告 -->
       <view v-if="activity.announcement" style="margin-top:16rpx;padding:16rpx;background:#fef9f0;border-radius:12rpx;border:1px dashed #fbbf24;">
@@ -334,7 +335,7 @@ async function doDeleteActivity() {
     success: async (res) => {
       if (res.confirm) {
         try {
-          await request({ url: `/activity/close/${activityId}`, method: 'POST', needAuth: true })
+          await request({ url: `/activity/delete/${activityId}`, method: 'POST', needAuth: true })
           uni.showToast({ title: '已删除', icon: 'success' })
           setTimeout(() => uni.navigateBack(), 500)
         } catch (e) { uni.showToast({ title: e?.message || '删除失败', icon: 'none' }) }

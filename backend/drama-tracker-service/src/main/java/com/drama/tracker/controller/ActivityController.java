@@ -208,6 +208,67 @@ public class ActivityController {
     }
 
     /**
+     * 编辑活动（仅发布人可操作）。
+     */
+    @Operation(summary = "编辑活动")
+    @PostMapping("/update/{id}")
+    public Result<?> updateActivity(@RequestHeader(value = "Authorization", required = false) String auth,
+                                     @PathVariable Long id, @RequestBody Map<String, Object> body) {
+        Long userId = getUserIdFromToken(auth);
+        if (userId == null) return Result.fail(401, "请先登录");
+        Activity a = activityMapper.selectById(id);
+        if (a == null) return Result.fail(404, "活动不存在");
+        if (!a.getUserId().equals(userId)) return Result.fail(403, "无权操作");
+
+        // 内容安全检查
+        String title = (String) body.get("title");
+        String desc = (String) body.get("description");
+        if (title != null) {
+            String secResult = contentSecurityChecker.check(title, ContentSecurityChecker.SCENE_FORUM);
+            if (secResult != null) return Result.fail(secResult);
+        }
+        if (desc != null) {
+            String secResult = contentSecurityChecker.check(desc, ContentSecurityChecker.SCENE_FORUM);
+            if (secResult != null) return Result.fail(secResult);
+        }
+
+        if (body.containsKey("title")) a.setTitle((String) body.get("title"));
+        if (body.containsKey("category")) a.setCategory((String) body.get("category"));
+        if (body.containsKey("description")) a.setDescription((String) body.get("description"));
+        if (body.containsKey("location")) a.setLocation((String) body.get("location"));
+        if (body.containsKey("activityTime")) a.setActivityTime((String) body.get("activityTime"));
+        if (body.containsKey("maxPeople")) a.setMaxPeople(body.get("maxPeople") != null ? Integer.parseInt(body.get("maxPeople").toString()) : a.getMaxPeople());
+        if (body.containsKey("tags")) a.setTags((String) body.get("tags"));
+        if (body.containsKey("contactInfo")) a.setContactInfo((String) body.get("contactInfo"));
+        if (body.containsKey("preferGender")) a.setPreferGender(body.get("preferGender") != null ? Integer.parseInt(body.get("preferGender").toString()) : 0);
+        if (body.containsKey("preferAgeMin")) a.setPreferAgeMin(body.get("preferAgeMin") != null ? Integer.parseInt(body.get("preferAgeMin").toString()) : null);
+        if (body.containsKey("preferAgeMax")) a.setPreferAgeMax(body.get("preferAgeMax") != null ? Integer.parseInt(body.get("preferAgeMax").toString()) : null);
+        if (body.containsKey("preferCity")) a.setPreferCity((String) body.get("preferCity"));
+        if (body.containsKey("preferTags")) a.setPreferTags((String) body.get("preferTags"));
+
+        activityMapper.updateById(a);
+        return Result.success("活动已更新");
+    }
+
+    /**
+     * 删除活动（仅发布人可操作）。
+     */
+    @Operation(summary = "删除活动")
+    @PostMapping("/delete/{id}")
+    public Result<String> deleteActivity(@RequestHeader(value = "Authorization", required = false) String auth,
+                                          @PathVariable Long id) {
+        Long userId = getUserIdFromToken(auth);
+        if (userId == null) return Result.fail(401, "请先登录");
+        Activity a = activityMapper.selectById(id);
+        if (a == null) return Result.fail(404, "活动不存在");
+        if (!a.getUserId().equals(userId)) return Result.fail(403, "无权操作");
+        a.setStatus(0);
+        a.setDeleted(1);
+        activityMapper.updateById(a);
+        return Result.success("已删除");
+    }
+
+    /**
      * 更新活动公告（发布人）。
      */
     @PostMapping("/announcement/{id}")
