@@ -73,32 +73,36 @@ public class UserAuthController {
     @Operation(summary = "手机号登录")
     @PostMapping("/login")
     public Result<Map<String, Object>> login(@RequestBody Map<String, String> body) {
-        String phone = body.get("phone");
-        String password = body.get("password");
+        try {
+            String phone = body.get("phone");
+            String password = body.get("password");
 
-        if (phone == null || password == null) {
-            return Result.fail("手机号和密码不能为空");
+            if (phone == null || password == null) {
+                return Result.fail("手机号和密码不能为空");
+            }
+
+            LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(User::getUsername, phone);
+            User user = userMapper.selectOne(wrapper);
+
+            if (user == null) {
+                return Result.fail("该手机号未注册");
+            }
+            if (user.getStatus() != null && user.getStatus() == 0) {
+                return Result.fail("账号已被禁用");
+            }
+            if (!passwordEncoder.matches(password, user.getPassword())) {
+                return Result.fail("密码错误");
+            }
+
+            // 更新最后登录时间
+            user.setLastLoginTime(LocalDateTime.now());
+            userMapper.updateById(user);
+
+            return Result.success(buildTokenResult(user));
+        } catch (Exception e) {
+            return Result.fail("登录失败: " + e.getMessage());
         }
-
-        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(User::getUsername, phone);
-        User user = userMapper.selectOne(wrapper);
-
-        if (user == null) {
-            return Result.fail("该手机号未注册");
-        }
-        if (user.getStatus() != null && user.getStatus() == 0) {
-            return Result.fail("账号已被禁用");
-        }
-        if (!passwordEncoder.matches(password, user.getPassword())) {
-            return Result.fail("密码错误");
-        }
-
-        // 更新最后登录时间
-        user.setLastLoginTime(LocalDateTime.now());
-        userMapper.updateById(user);
-
-        return Result.success(buildTokenResult(user));
     }
 
     /**
