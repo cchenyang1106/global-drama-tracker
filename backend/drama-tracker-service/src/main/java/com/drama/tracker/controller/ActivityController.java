@@ -23,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 @Tag(name = "活动", description = "活动发布与管理接口")
+@Slf4j
 @RestController
 @RequestMapping("/api/activity")
 @RequiredArgsConstructor
@@ -65,41 +67,54 @@ public class ActivityController {
             @RequestParam(defaultValue = "20") Integer size,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String keyword) {
-
-        LambdaQueryWrapper<Activity> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Activity::getStatus, 1);
-        if (StringUtils.hasText(category) && !"all".equalsIgnoreCase(category)) {
-            wrapper.eq(Activity::getCategory, category);
-        }
-        if (StringUtils.hasText(keyword)) {
-            wrapper.and(w -> w.like(Activity::getTitle, keyword).or().like(Activity::getDescription, keyword));
-        }
-        wrapper.orderByDesc(Activity::getCreateTime);
-
-        Page<Activity> pageResult = activityMapper.selectPage(new Page<>(page, size), wrapper);
-
-        List<Map<String, Object>> records = new ArrayList<>();
-        for (Activity a : pageResult.getRecords()) {
-            Map<String, Object> item = activityToMap(a);
-            // 附加发布者信息
-            User user = userMapper.selectById(a.getUserId());
-            UserProfile profile = profileMapper.selectOne(
-                    new LambdaQueryWrapper<UserProfile>().eq(UserProfile::getUserId, a.getUserId()));
-            if (user != null) item.put("authorName", user.getNickname());
-            if (profile != null) {
-                // 列表不返回 base64 头像（太大），只返回城市
-                item.put("authorCity", profile.getCity());
-                item.put("authorGender", profile.getGender());
+        try {
+            LambdaQueryWrapper<Activity> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(Activity::getStatus, 1);
+            if (StringUtils.hasText(category) && !"all".equalsIgnoreCase(category)) {
+                wrapper.eq(Activity::getCategory, category);
             }
-            records.add(item);
-        }
+            if (StringUtils.hasText(keyword)) {
+                wrapper.and(w -> w.like(Activity::getTitle, keyword).or().like(Activity::getDescription, keyword));
+            }
+            wrapper.orderByDesc(Activity::getCreateTime);
 
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("records", records);
-        result.put("total", pageResult.getTotal());
-        result.put("page", page);
-        result.put("size", size);
-        return Result.success(result);
+            Page<Activity> pageResult = activityMapper.selectPage(new Page<>(page, size), wrapper);
+
+            List<Map<String, Object>> records = new ArrayList<>();
+            for (Activity a : pageResult.getRecords()) {
+                Map<String, Object> item = activityToMap(a);
+                try {
+                    User user = userMapper.selectById(a.getUserId());
+                    UserProfile profile = profileMapper.selectOne(
+                            new LambdaQueryWrapper<UserProfile>().eq(UserProfile::getUserId, a.getUserId()));
+                    if (user != null) item.put("authorName", user.getNickname());
+                    if (profile != null) {
+                        item.put("authorCity", profile.getCity());
+                        item.put("authorGender", profile.getGender());
+                    }
+                } catch (Exception e) {
+                    log.warn("加载活动{}的作者信息失败: {}", a.getId(), e.getMessage());
+                }
+                records.add(item);
+            }
+
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("records", records);
+            result.put("total", pageResult.getTotal());
+            result.put("page", page);
+            result.put("size", size);
+            return Result.success(result);
+        } catch (Exception e) {
+            log.error("活动列表查询失败: {}", e.getMessage(), e);
+            // 返回空列表而不是 500
+            Map<String, Object> empty = new LinkedHashMap<>();
+            empty.put("records", new ArrayList<>());
+            empty.put("total", 0);
+            empty.put("page", page);
+            empty.put("size", size);
+            empty.put("_error", e.getMessage());
+            return Result.success(empty);
+        }
     }
 
     /**
