@@ -23,12 +23,38 @@ public class DatabaseMigration implements CommandLineRunner {
     @Override
     public void run(String... args) {
         try (Connection conn = dataSource.getConnection(); Statement stmt = conn.createStatement()) {
+            // user 表补充可能缺失的字段
+            addColumnIfNotExists(conn, stmt, "user", "last_login_time",
+                    "ALTER TABLE user ADD COLUMN last_login_time DATETIME DEFAULT NULL");
+            addColumnIfNotExists(conn, stmt, "user", "update_time",
+                    "ALTER TABLE user ADD COLUMN update_time DATETIME DEFAULT NULL");
+
+            // activity 表补充所有可能缺失的字段
+            addColumnIfNotExists(conn, stmt, "activity", "prefer_gender",
+                    "ALTER TABLE activity ADD COLUMN prefer_gender INT DEFAULT 0 COMMENT '偏好性别'");
+            addColumnIfNotExists(conn, stmt, "activity", "prefer_age_min",
+                    "ALTER TABLE activity ADD COLUMN prefer_age_min INT DEFAULT NULL");
+            addColumnIfNotExists(conn, stmt, "activity", "prefer_age_max",
+                    "ALTER TABLE activity ADD COLUMN prefer_age_max INT DEFAULT NULL");
+            addColumnIfNotExists(conn, stmt, "activity", "prefer_city",
+                    "ALTER TABLE activity ADD COLUMN prefer_city VARCHAR(50) DEFAULT NULL");
+            addColumnIfNotExists(conn, stmt, "activity", "prefer_tags",
+                    "ALTER TABLE activity ADD COLUMN prefer_tags VARCHAR(200) DEFAULT NULL");
+            addColumnIfNotExists(conn, stmt, "activity", "contact_info",
+                    "ALTER TABLE activity ADD COLUMN contact_info VARCHAR(500) DEFAULT NULL COMMENT '通过后可见的联系方式'");
+            addColumnIfNotExists(conn, stmt, "activity", "announcement",
+                    "ALTER TABLE activity ADD COLUMN announcement TEXT DEFAULT NULL COMMENT '活动公告'");
+            addColumnIfNotExists(conn, stmt, "activity", "team_complete",
+                    "ALTER TABLE activity ADD COLUMN team_complete INT DEFAULT 0 COMMENT '0未完成 1已满员'");
+            addColumnIfNotExists(conn, stmt, "activity", "view_count",
+                    "ALTER TABLE activity ADD COLUMN view_count INT DEFAULT 0");
+            addColumnIfNotExists(conn, stmt, "activity", "images",
+                    "ALTER TABLE activity ADD COLUMN images TEXT DEFAULT NULL");
+            addColumnIfNotExists(conn, stmt, "activity", "update_time",
+                    "ALTER TABLE activity ADD COLUMN update_time DATETIME DEFAULT NULL");
+
             addColumnIfNotExists(conn, stmt, "group_member_info", "last_read_time",
                     "ALTER TABLE group_member_info ADD COLUMN last_read_time DATETIME DEFAULT NULL COMMENT '最后已读时间' AFTER role");
-            addColumnIfNotExists(conn, stmt, "activity", "contact_info",
-                    "ALTER TABLE activity ADD COLUMN contact_info VARCHAR(500) DEFAULT NULL COMMENT '通过后可见的联系方式' AFTER images");
-            addColumnIfNotExists(conn, stmt, "activity", "announcement",
-                    "ALTER TABLE activity ADD COLUMN announcement TEXT DEFAULT NULL COMMENT '活动公告' AFTER contact_info");
             // 创建活动留言板表
             createTableIfNotExists(conn, stmt, "activity_message",
                     "CREATE TABLE activity_message (" +
