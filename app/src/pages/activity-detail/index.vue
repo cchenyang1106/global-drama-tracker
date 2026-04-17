@@ -284,7 +284,15 @@ async function sendMessage() {
 // 留言时间格式化
 function formatMsgTime(time) {
   if (!time) return ''
-  const d = new Date(time.replace(/-/g, '/'))
+  let d
+  if (Array.isArray(time)) {
+    d = new Date(time[0], time[1] - 1, time[2], time[3] || 0, time[4] || 0, time[5] || 0)
+  } else if (typeof time === 'string') {
+    d = new Date(time.replace('T', ' ').replace(/-/g, '/'))
+  } else {
+    d = new Date(time)
+  }
+  if (isNaN(d.getTime())) return ''
   const now = new Date()
   const diffMs = now - d
   if (diffMs < 60000) return '刚刚'
