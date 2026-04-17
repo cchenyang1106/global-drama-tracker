@@ -143,7 +143,6 @@ public class UserAuthController {
             info.put("id", user.getId());
             info.put("phone", PhoneUtil.mask(user.getUsername()));
             info.put("nickname", user.getNickname());
-            info.put("avatarUrl", user.getAvatarUrl());
             return Result.success(info);
         } catch (Exception e) {
             return Result.fail("登录已过期");
