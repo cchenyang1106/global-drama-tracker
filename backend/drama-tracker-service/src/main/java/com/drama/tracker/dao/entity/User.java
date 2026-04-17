@@ -8,8 +8,6 @@ import java.time.LocalDateTime;
 
 /**
  * 用户实体。
- *
- * @author drama-tracker
  */
 @Data
 @TableName("user")
@@ -17,58 +15,23 @@ public class User implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    /**
-     * 主键ID
-     */
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    /**
-     * 用户名（数据库列名为 phone）
-     */
     @TableField("phone")
     private String username;
 
-    /**
-     * 密码（加密存储）
-     */
     private String password;
-
-    /**
-     * 昵称
-     */
     private String nickname;
-
-    /**
-     * 用户角色 (0:普通用户 1:VIP 9:管理员)
-     */
     private Integer role;
-
-    /**
-     * 状态 (0:禁用 1:正常)
-     */
     private Integer status;
 
-    /**
-     * 最后登录时间
-     */
+    @TableField(value = "last_login_time", updateStrategy = FieldStrategy.IGNORED)
     private LocalDateTime lastLoginTime;
 
-    /**
-     * 创建时间
-     */
-    @TableField(fill = FieldFill.INSERT)
+    @TableField(value = "create_time", insertStrategy = FieldStrategy.NOT_NULL)
     private LocalDateTime createTime;
 
-    /**
-     * 更新时间
-     */
-    @TableField(fill = FieldFill.INSERT_UPDATE)
-    private LocalDateTime updateTime;
-
-    /**
-     * 是否删除
-     */
-    @TableLogic
+    @TableField(value = "deleted", insertStrategy = FieldStrategy.NOT_NULL)
     private Integer deleted;
 }

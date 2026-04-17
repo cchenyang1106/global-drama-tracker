@@ -64,7 +64,6 @@ public class UserAuthController {
         user.setRole(0);
         user.setStatus(1);
         user.setCreateTime(LocalDateTime.now());
-        user.setUpdateTime(LocalDateTime.now());
         userMapper.insert(user);
 
         return Result.success(buildTokenResult(user));
