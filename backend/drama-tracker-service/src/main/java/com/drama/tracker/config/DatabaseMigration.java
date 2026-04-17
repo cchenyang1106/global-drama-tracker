@@ -67,16 +67,76 @@ public class DatabaseMigration implements CommandLineRunner {
                     "ALTER TABLE group_member_info ADD COLUMN last_read_time DATETIME DEFAULT NULL COMMENT '最后已读时间'");
 
             // user_profile 表补充可能缺失的字段
+            addColumnIfNotExists(conn, stmt, "user_profile", "avatar_url",
+                    "ALTER TABLE user_profile ADD COLUMN avatar_url LONGTEXT DEFAULT NULL");
+            addColumnIfNotExists(conn, stmt, "user_profile", "real_name",
+                    "ALTER TABLE user_profile ADD COLUMN real_name VARCHAR(50) DEFAULT NULL");
+            addColumnIfNotExists(conn, stmt, "user_profile", "age",
+                    "ALTER TABLE user_profile ADD COLUMN age INT DEFAULT NULL");
+            addColumnIfNotExists(conn, stmt, "user_profile", "gender",
+                    "ALTER TABLE user_profile ADD COLUMN gender INT DEFAULT NULL");
+            addColumnIfNotExists(conn, stmt, "user_profile", "city",
+                    "ALTER TABLE user_profile ADD COLUMN city VARCHAR(50) DEFAULT NULL");
+            addColumnIfNotExists(conn, stmt, "user_profile", "occupation",
+                    "ALTER TABLE user_profile ADD COLUMN occupation VARCHAR(50) DEFAULT NULL");
+            addColumnIfNotExists(conn, stmt, "user_profile", "bio",
+                    "ALTER TABLE user_profile ADD COLUMN bio VARCHAR(500) DEFAULT NULL");
+            addColumnIfNotExists(conn, stmt, "user_profile", "hobbies",
+                    "ALTER TABLE user_profile ADD COLUMN hobbies VARCHAR(500) DEFAULT NULL");
             addColumnIfNotExists(conn, stmt, "user_profile", "tags",
-                    "ALTER TABLE user_profile ADD COLUMN tags VARCHAR(500) DEFAULT NULL COMMENT '个人标签'");
+                    "ALTER TABLE user_profile ADD COLUMN tags VARCHAR(500) DEFAULT NULL");
             addColumnIfNotExists(conn, stmt, "user_profile", "wechat",
                     "ALTER TABLE user_profile ADD COLUMN wechat VARCHAR(50) DEFAULT NULL");
             addColumnIfNotExists(conn, stmt, "user_profile", "show_wechat",
                     "ALTER TABLE user_profile ADD COLUMN show_wechat INT DEFAULT 0");
             addColumnIfNotExists(conn, stmt, "user_profile", "photos",
                     "ALTER TABLE user_profile ADD COLUMN photos TEXT DEFAULT NULL");
+            addColumnIfNotExists(conn, stmt, "user_profile", "create_time",
+                    "ALTER TABLE user_profile ADD COLUMN create_time DATETIME DEFAULT CURRENT_TIMESTAMP");
             addColumnIfNotExists(conn, stmt, "user_profile", "update_time",
                     "ALTER TABLE user_profile ADD COLUMN update_time DATETIME DEFAULT NULL");
+
+            // activity_comment 表补充缺失字段
+            addColumnIfNotExists(conn, stmt, "activity_comment", "parent_id",
+                    "ALTER TABLE activity_comment ADD COLUMN parent_id BIGINT DEFAULT NULL");
+            addColumnIfNotExists(conn, stmt, "activity_comment", "pinned",
+                    "ALTER TABLE activity_comment ADD COLUMN pinned INT DEFAULT 0");
+            addColumnIfNotExists(conn, stmt, "activity_comment", "hidden",
+                    "ALTER TABLE activity_comment ADD COLUMN hidden INT DEFAULT 0");
+
+            // activity_quiz 表补充缺失字段
+            addColumnIfNotExists(conn, stmt, "activity_quiz", "question_images",
+                    "ALTER TABLE activity_quiz ADD COLUMN question_images TEXT DEFAULT NULL");
+            addColumnIfNotExists(conn, stmt, "activity_quiz", "question_files",
+                    "ALTER TABLE activity_quiz ADD COLUMN question_files TEXT DEFAULT NULL");
+            addColumnIfNotExists(conn, stmt, "activity_quiz", "sort_order",
+                    "ALTER TABLE activity_quiz ADD COLUMN sort_order INT DEFAULT 0");
+
+            // quiz_answer 表补充缺失字段
+            addColumnIfNotExists(conn, stmt, "quiz_answer", "answer_images",
+                    "ALTER TABLE quiz_answer ADD COLUMN answer_images TEXT DEFAULT NULL");
+            addColumnIfNotExists(conn, stmt, "quiz_answer", "answer_files",
+                    "ALTER TABLE quiz_answer ADD COLUMN answer_files TEXT DEFAULT NULL");
+            addColumnIfNotExists(conn, stmt, "quiz_answer", "remark",
+                    "ALTER TABLE quiz_answer ADD COLUMN remark VARCHAR(500) DEFAULT NULL");
+            addColumnIfNotExists(conn, stmt, "quiz_answer", "update_time",
+                    "ALTER TABLE quiz_answer ADD COLUMN update_time DATETIME DEFAULT NULL");
+
+            // match_request 表补充缺失字段
+            addColumnIfNotExists(conn, stmt, "match_request", "update_time",
+                    "ALTER TABLE match_request ADD COLUMN update_time DATETIME DEFAULT NULL");
+
+            // chat_message 表补充缺失字段
+            addColumnIfNotExists(conn, stmt, "chat_message", "msg_type",
+                    "ALTER TABLE chat_message ADD COLUMN msg_type INT DEFAULT 0");
+            addColumnIfNotExists(conn, stmt, "chat_message", "is_read",
+                    "ALTER TABLE chat_message ADD COLUMN is_read INT DEFAULT 0");
+
+            // user_report 表补充缺失字段
+            addColumnIfNotExists(conn, stmt, "user_report", "admin_note",
+                    "ALTER TABLE user_report ADD COLUMN admin_note VARCHAR(500) DEFAULT NULL");
+            addColumnIfNotExists(conn, stmt, "user_report", "update_time",
+                    "ALTER TABLE user_report ADD COLUMN update_time DATETIME DEFAULT NULL");
 
             // 创建活动留言板表
             createTableIfNotExists(conn, stmt, "activity_message",

@@ -151,8 +151,8 @@ public class MatchController {
             // 组队成功，更新活动人数
             Activity a = activityMapper.selectById(mr.getActivityId());
             if (a != null) {
-                a.setJoinedCount(a.getJoinedCount() + 1);
-                if (a.getJoinedCount() >= a.getMaxPeople()) a.setStatus(2);
+                a.setJoinedCount((a.getJoinedCount() != null ? a.getJoinedCount() : 0) + 1);
+                if (a.getMaxPeople() != null && a.getJoinedCount() >= a.getMaxPeople()) a.setStatus(2);
                 activityMapper.updateById(a);
             }
             // 发送系统消息
