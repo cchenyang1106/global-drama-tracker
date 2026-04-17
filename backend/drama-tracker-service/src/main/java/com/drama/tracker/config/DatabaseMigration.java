@@ -54,7 +54,20 @@ public class DatabaseMigration implements CommandLineRunner {
                     "ALTER TABLE activity ADD COLUMN update_time DATETIME DEFAULT NULL");
 
             addColumnIfNotExists(conn, stmt, "group_member_info", "last_read_time",
-                    "ALTER TABLE group_member_info ADD COLUMN last_read_time DATETIME DEFAULT NULL COMMENT '最后已读时间' AFTER role");
+                    "ALTER TABLE group_member_info ADD COLUMN last_read_time DATETIME DEFAULT NULL COMMENT '最后已读时间'");
+
+            // user_profile 表补充可能缺失的字段
+            addColumnIfNotExists(conn, stmt, "user_profile", "tags",
+                    "ALTER TABLE user_profile ADD COLUMN tags VARCHAR(500) DEFAULT NULL COMMENT '个人标签'");
+            addColumnIfNotExists(conn, stmt, "user_profile", "wechat",
+                    "ALTER TABLE user_profile ADD COLUMN wechat VARCHAR(50) DEFAULT NULL");
+            addColumnIfNotExists(conn, stmt, "user_profile", "show_wechat",
+                    "ALTER TABLE user_profile ADD COLUMN show_wechat INT DEFAULT 0");
+            addColumnIfNotExists(conn, stmt, "user_profile", "photos",
+                    "ALTER TABLE user_profile ADD COLUMN photos TEXT DEFAULT NULL");
+            addColumnIfNotExists(conn, stmt, "user_profile", "update_time",
+                    "ALTER TABLE user_profile ADD COLUMN update_time DATETIME DEFAULT NULL");
+
             // 创建活动留言板表
             createTableIfNotExists(conn, stmt, "activity_message",
                     "CREATE TABLE activity_message (" +
