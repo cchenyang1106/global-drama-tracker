@@ -14,14 +14,6 @@ spring:
     username: root
     password: root
 
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      password:
-      database: 0
-      timeout: 10000
-
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: Asia/Shanghai
