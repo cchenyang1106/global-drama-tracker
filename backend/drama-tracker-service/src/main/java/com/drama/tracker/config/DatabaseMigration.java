@@ -23,6 +23,9 @@ public class DatabaseMigration implements CommandLineRunner {
     @Override
     public void run(String... args) {
         try (Connection conn = dataSource.getConnection(); Statement stmt = conn.createStatement()) {
+            // user 表：如果有 phone 列但没有 username 列，重命名为 username
+            renameColumnIfNeeded(conn, stmt, "user", "phone", "username",
+                    "ALTER TABLE user CHANGE COLUMN phone username VARCHAR(50) NOT NULL");
             addColumnIfNotExists(conn, stmt, "group_member_info", "last_read_time",
                     "ALTER TABLE group_member_info ADD COLUMN last_read_time DATETIME DEFAULT NULL COMMENT '最后已读时间' AFTER role");
             addColumnIfNotExists(conn, stmt, "activity", "contact_info",
@@ -174,5 +177,17 @@ public class DatabaseMigration implements CommandLineRunner {
             log.info("数据库迁移：{} 表添加 {} 字段成功", table, column);
         }
         rs.close();
+    }
+
+    private void renameColumnIfNeeded(Connection conn, Statement stmt, String table, String oldCol, String newCol, String sql) throws Exception {
+        ResultSet rsNew = conn.getMetaData().getColumns(null, null, table, newCol);
+        if (rsNew.next()) { rsNew.close(); return; } // 新列已存在，无需操作
+        rsNew.close();
+        ResultSet rsOld = conn.getMetaData().getColumns(null, null, table, oldCol);
+        if (rsOld.next()) {
+            stmt.execute(sql);
+            log.info("数据库迁移：{} 表 {} 列重命名为 {} 成功", table, oldCol, newCol);
+        }
+        rsOld.close();
     }
 }
