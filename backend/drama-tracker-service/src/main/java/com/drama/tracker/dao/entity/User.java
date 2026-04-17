@@ -70,5 +70,5 @@ public class User implements Serializable {
      * 是否删除
      */
     @TableLogic
-    private Boolean deleted;
+    private Integer deleted;
 }

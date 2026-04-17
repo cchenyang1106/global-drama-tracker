@@ -24,8 +24,18 @@ public class DatabaseMigration implements CommandLineRunner {
     public void run(String... args) {
         try (Connection conn = dataSource.getConnection(); Statement stmt = conn.createStatement()) {
             // user 表补充可能缺失的字段
+            addColumnIfNotExists(conn, stmt, "user", "nickname",
+                    "ALTER TABLE user ADD COLUMN nickname VARCHAR(50) DEFAULT NULL");
+            addColumnIfNotExists(conn, stmt, "user", "role",
+                    "ALTER TABLE user ADD COLUMN role INT DEFAULT 0");
+            addColumnIfNotExists(conn, stmt, "user", "status",
+                    "ALTER TABLE user ADD COLUMN status INT DEFAULT 1");
+            addColumnIfNotExists(conn, stmt, "user", "deleted",
+                    "ALTER TABLE user ADD COLUMN deleted INT DEFAULT 0");
             addColumnIfNotExists(conn, stmt, "user", "last_login_time",
                     "ALTER TABLE user ADD COLUMN last_login_time DATETIME DEFAULT NULL");
+            addColumnIfNotExists(conn, stmt, "user", "create_time",
+                    "ALTER TABLE user ADD COLUMN create_time DATETIME DEFAULT CURRENT_TIMESTAMP");
             addColumnIfNotExists(conn, stmt, "user", "update_time",
                     "ALTER TABLE user ADD COLUMN update_time DATETIME DEFAULT NULL");
 
