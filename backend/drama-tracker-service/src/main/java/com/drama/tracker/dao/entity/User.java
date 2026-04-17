@@ -24,8 +24,9 @@ public class User implements Serializable {
     private Long id;
 
     /**
-     * 用户名
+     * 用户名（数据库列名为 phone）
      */
+    @TableField("phone")
     private String username;
 
     /**

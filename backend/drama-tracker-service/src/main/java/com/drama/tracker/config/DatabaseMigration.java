@@ -23,9 +23,6 @@ public class DatabaseMigration implements CommandLineRunner {
     @Override
     public void run(String... args) {
         try (Connection conn = dataSource.getConnection(); Statement stmt = conn.createStatement()) {
-            // user 表：如果有 phone 列但没有 username 列，重命名为 username
-            renameColumnIfNeeded(conn, stmt, "user", "phone", "username",
-                    "ALTER TABLE user CHANGE COLUMN phone username VARCHAR(50) NOT NULL");
             addColumnIfNotExists(conn, stmt, "group_member_info", "last_read_time",
                     "ALTER TABLE group_member_info ADD COLUMN last_read_time DATETIME DEFAULT NULL COMMENT '最后已读时间' AFTER role");
             addColumnIfNotExists(conn, stmt, "activity", "contact_info",
@@ -65,11 +62,11 @@ public class DatabaseMigration implements CommandLineRunner {
             rs.close();
 
             // 检查是否有示范用户，没有则创建
-            rs = stmt.executeQuery("SELECT id FROM user WHERE username = 'demo_user_01' LIMIT 1");
+            rs = stmt.executeQuery("SELECT id FROM user WHERE phone = 'demo_user_01' LIMIT 1");
             long demoUser1;
             if (!rs.next()) {
                 // 密码 demo123456 的 BCrypt 哈希
-                stmt.execute("INSERT INTO user (username, password, nickname, role, status, create_time) VALUES " +
+                stmt.execute("INSERT INTO user (phone, password, nickname, role, status, create_time) VALUES " +
                         "('demo_user_01', '$2a$10$xGTqFpx3R0EvDBfUMB2Iru5FGHmTx3j3BqBDRfVKx7UWAgMx0cQNa', '活动达人小明', 0, 1, NOW())");
                 rs = stmt.executeQuery("SELECT LAST_INSERT_ID()");
                 rs.next();
@@ -81,10 +78,10 @@ public class DatabaseMigration implements CommandLineRunner {
             }
             rs.close();
 
-            rs = stmt.executeQuery("SELECT id FROM user WHERE username = 'demo_user_02' LIMIT 1");
+            rs = stmt.executeQuery("SELECT id FROM user WHERE phone = 'demo_user_02' LIMIT 1");
             long demoUser2;
             if (!rs.next()) {
-                stmt.execute("INSERT INTO user (username, password, nickname, role, status, create_time) VALUES " +
+                stmt.execute("INSERT INTO user (phone, password, nickname, role, status, create_time) VALUES " +
                         "('demo_user_02', '$2a$10$xGTqFpx3R0EvDBfUMB2Iru5FGHmTx3j3BqBDRfVKx7UWAgMx0cQNa', '旅行小爱', 0, 1, NOW())");
                 rs = stmt.executeQuery("SELECT LAST_INSERT_ID()");
                 rs.next();
@@ -96,10 +93,10 @@ public class DatabaseMigration implements CommandLineRunner {
             }
             rs.close();
 
-            rs = stmt.executeQuery("SELECT id FROM user WHERE username = 'demo_user_03' LIMIT 1");
+            rs = stmt.executeQuery("SELECT id FROM user WHERE phone = 'demo_user_03' LIMIT 1");
             long demoUser3;
             if (!rs.next()) {
-                stmt.execute("INSERT INTO user (username, password, nickname, role, status, create_time) VALUES " +
+                stmt.execute("INSERT INTO user (phone, password, nickname, role, status, create_time) VALUES " +
                         "('demo_user_03', '$2a$10$xGTqFpx3R0EvDBfUMB2Iru5FGHmTx3j3BqBDRfVKx7UWAgMx0cQNa', '游戏少年阿杰', 0, 1, NOW())");
                 rs = stmt.executeQuery("SELECT LAST_INSERT_ID()");
                 rs.next();
