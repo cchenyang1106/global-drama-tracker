@@ -9,7 +9,8 @@
       <text class="title">{{ activity.title }}</text>
 
       <view class="author" @click="goUser(activity.userId)">
-        <view class="avatar-circle">{{ (activity.authorName || '?').charAt(0) }}</view>
+        <image v-if="activity.authorAvatar" :src="activity.authorAvatar" class="avatar-img" mode="aspectFill" />
+        <view v-else class="avatar-circle">{{ (activity.authorName || '?').charAt(0) }}</view>
         <view>
           <text class="author-name">{{ activity.authorName }}</text>
           <text class="author-sub">{{ activity.authorCity || '' }} {{ activity.authorGender === 1 ? '♂' : activity.authorGender === 2 ? '♀' : '' }}</text>
@@ -186,6 +187,9 @@ import { onLoad, onShow, onHide } from '@dcloudio/uni-app'
 import { getActivityDetail } from '@/api/activity'
 import { applyActivity, getSentRequests } from '@/api/match'
 import { request } from '@/api/request'
+import { useUserStore } from '@/stores/user'
+
+const userStore = useUserStore()
 
 const activity = ref(null)
 const applyMsg = ref('')
@@ -206,9 +210,9 @@ const reportReason = ref('')
 const reportDetail = ref('')
 const reasons = ['色情低俗', '辱骂骚扰', '虚假信息', '广告推销', '诈骗欺诈', '其他']
 
-const currentUserId = uni.getStorageSync('userId')
-const isLoggedIn = computed(() => !!uni.getStorageSync('token'))
-const isOwner = computed(() => activity.value && currentUserId && activity.value.userId == currentUserId)
+const currentUserId = ref(uni.getStorageSync('userId'))
+const isLoggedIn = computed(() => userStore.isLoggedIn)
+const isOwner = computed(() => activity.value && currentUserId.value && activity.value.userId == currentUserId.value)
 const canApply = computed(() => isLoggedIn.value && !isOwner.value && applyStatus.value === -1 && activity.value?.status === 1)
 
 function goUser(id) { uni.navigateTo({ url: `/pages/profile/index?userId=${id}` }) }
@@ -396,7 +400,12 @@ async function refreshData() {
 }
 
 onLoad((options) => { activityId = options?.id })
-onShow(() => { refreshData() })
+onShow(() => {
+  // 登录返回后，重新初始化 store 和 userId，确保响应式状态立即更新
+  userStore.init()
+  currentUserId.value = uni.getStorageSync('userId')
+  refreshData()
+})
 onHide(() => { if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null } })
 onUnmounted(() => { if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null } })
 </script>
@@ -410,6 +419,7 @@ onUnmounted(() => { if (countdownTimer) { clearInterval(countdownTimer); countdo
 .title { font-size: 36rpx; font-weight: 800; color: #4a2040; display: block; margin: 16rpx 0; }
 .author { display: flex; gap: 16rpx; align-items: center; margin: 16rpx 0; }
 .avatar-circle { width: 72rpx; height: 72rpx; border-radius: 50%; background: #f472b6; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 30rpx; font-weight: 700; }
+.avatar-img { width: 72rpx; height: 72rpx; border-radius: 50%; flex-shrink: 0; }
 .avatar-sm { width: 48rpx; height: 48rpx; border-radius: 50%; background: #f9a8d4; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 22rpx; font-weight: 700; flex-shrink: 0; }
 .author-name { font-weight: 600; font-size: 28rpx; color: #4a2040; display: block; }
 .author-sub { font-size: 24rpx; color: #b8929e; display: block; }

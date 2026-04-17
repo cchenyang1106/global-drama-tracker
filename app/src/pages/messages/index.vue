@@ -6,13 +6,26 @@
       <text :class="['tab', tab === 'sent' && 'active']" @tap="tab = 'sent'">我的申请</text>
     </view>
 
-    <!-- 我的活动（已通过的） -->
+    <!-- 我的活动（我发布的 + 我申请通过的） -->
     <view v-if="tab === 'joined'">
-      <view v-if="joinedActivities.length === 0" class="empty">暂无已参与的活动</view>
-      <view v-for="s in joinedActivities" :key="s.id" class="act-item" @tap="goActivity(s.activityId)">
+      <view v-if="allMyActivities.length === 0" class="empty">暂无活动，去广场看看吧~</view>
+
+      <!-- 我发布的活动 -->
+      <view v-if="myPublished.length > 0" class="section-label">📋 我发布的</view>
+      <view v-for="a in myPublished" :key="'pub_' + a.id" class="act-item" @tap="goActivity(a.id)">
+        <view class="act-top">
+          <text class="act-title">{{ a.title }}</text>
+          <text class="act-badge pub">发布人</text>
+        </view>
+        <text class="act-sub">👥 {{ a.joinedCount || 0 }}/{{ a.maxPeople || 1 }}  ·  {{ a.category || '' }}</text>
+      </view>
+
+      <!-- 我参与的活动 -->
+      <view v-if="joinedActivities.length > 0" class="section-label">✅ 已通过的</view>
+      <view v-for="s in joinedActivities" :key="'join_' + s.id" class="act-item" @tap="goActivity(s.activityId)">
         <view class="act-top">
           <text class="act-title">{{ s.activityTitle }}</text>
-          <text class="act-status">已通过 ✅</text>
+          <text class="act-badge joined">已通过</text>
         </view>
         <text class="act-sub">发起者：{{ s.authorName }}</text>
       </view>
@@ -56,22 +69,30 @@
 import { ref, computed, onUnmounted } from 'vue'
 import { onShow, onHide } from '@dcloudio/uni-app'
 import { getReceivedRequests, getSentRequests } from '@/api/match'
+import { getMyActivities } from '@/api/activity'
 
 const tab = ref('joined')
 const received = ref([])
 const sent = ref([])
+const myPublished = ref([])
 let pollTimer = null
 
 const pendingCount = computed(() => (received.value || []).filter(r => r.status === 0).length)
 const joinedActivities = computed(() => (sent.value || []).filter(s => s.status === 1))
+const allMyActivities = computed(() => [...myPublished.value, ...joinedActivities.value])
 
 function goActivity(activityId) { uni.navigateTo({ url: `/pages/activity-detail/index?id=${activityId}` }) }
 function goReview(activityId) { uni.navigateTo({ url: `/pages/quiz-papers/index?activityId=${activityId}` }) }
 
 async function loadAll() {
-  const [r, s] = await Promise.allSettled([getReceivedRequests(), getSentRequests()])
-  received.value = r.status === 'fulfilled' ? (r.value || []) : received.value
-  sent.value = s.status === 'fulfilled' ? (s.value || []) : sent.value
+  try {
+    const r = await getReceivedRequests().catch(() => null)
+    const s = await getSentRequests().catch(() => null)
+    const p = await getMyActivities().catch(() => null)
+    if (r !== null) received.value = r || []
+    if (s !== null) sent.value = s || []
+    if (p !== null) myPublished.value = p || []
+  } catch {}
   updateBadge()
 }
 
@@ -81,7 +102,7 @@ function updateBadge() {
   else uni.removeTabBarBadge({ index: 1, fail() {} })
 }
 
-onShow(() => { loadAll(); pollTimer = setInterval(loadAll, 8000) })
+onShow(() => { loadAll(); pollTimer = setInterval(loadAll, 30000) })
 onHide(() => { if (pollTimer) { clearInterval(pollTimer); pollTimer = null } })
 onUnmounted(() => { if (pollTimer) { clearInterval(pollTimer); pollTimer = null } })
 </script>
@@ -92,10 +113,13 @@ onUnmounted(() => { if (pollTimer) { clearInterval(pollTimer); pollTimer = null 
 .tab { flex: 1; text-align: center; padding: 20rpx 0; font-size: 26rpx; color: #b8929e; }
 .tab.active { color: #ec4899; font-weight: 700; background: #fff0f5; }
 .empty { text-align: center; padding: 60rpx; color: #b8929e; font-size: 26rpx; }
+.section-label { font-size: 26rpx; font-weight: 700; color: #7c5270; padding: 16rpx 8rpx 8rpx; }
 .act-item { background: #fff; border-radius: 16rpx; padding: 24rpx; margin-bottom: 12rpx; border: 1px solid #fce4ec; }
 .act-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8rpx; }
-.act-title { font-size: 28rpx; font-weight: 600; color: #4a2040; }
-.act-status { font-size: 24rpx; color: #059669; font-weight: 600; }
+.act-title { font-size: 28rpx; font-weight: 600; color: #4a2040; flex: 1; }
+.act-badge { font-size: 22rpx; padding: 4rpx 14rpx; border-radius: 16rpx; font-weight: 600; flex-shrink: 0; margin-left: 12rpx; }
+.act-badge.pub { background: #fef3f8; color: #ec4899; }
+.act-badge.joined { background: #ecfdf5; color: #059669; }
 .act-sub { font-size: 24rpx; color: #b8929e; }
 .avatar-sm { width: 60rpx; height: 60rpx; border-radius: 50%; background: #f9a8d4; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 24rpx; font-weight: 700; flex-shrink: 0; }
 .req-item { background: #fff; border-radius: 16rpx; padding: 24rpx; margin-bottom: 12rpx; border: 1px solid #fce4ec; }

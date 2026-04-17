@@ -150,6 +150,9 @@ public class DatabaseMigration implements CommandLineRunner {
                     "INDEX idx_activity_id(activity_id)" +
                     ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='活动留言板'");
 
+            // === 一次性数据清空（v2.1.0 清理混乱数据）===
+            purgeAllDataOnce(conn, stmt);
+
             // 预置示范数据（确保广场不为空，仅首次插入）
             insertSampleDataIfEmpty(conn, stmt);
 
@@ -264,6 +267,53 @@ public class DatabaseMigration implements CommandLineRunner {
             }
         } catch (Exception e) {
             log.warn("清理审核敏感词异常（可忽略）: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * 一次性清空所有业务数据（v2.1.0），通过标记表确保只执行一次。
+     */
+    private void purgeAllDataOnce(Connection conn, Statement stmt) {
+        try {
+            // 创建迁移标记表（如不存在）
+            stmt.execute("CREATE TABLE IF NOT EXISTS _migration_flag (flag_key VARCHAR(50) PRIMARY KEY, executed_at DATETIME DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+            // 检查是否已执行过此次清空
+            ResultSet rs = stmt.executeQuery("SELECT 1 FROM _migration_flag WHERE flag_key = 'purge_v2.1.0'");
+            if (rs.next()) { rs.close(); return; } // 已执行过，跳过
+            rs.close();
+
+            log.info("数据库迁移：开始一次性清空所有业务数据（v2.1.0）...");
+
+            // 禁用外键检查
+            stmt.execute("SET FOREIGN_KEY_CHECKS = 0");
+
+            // 清空所有业务表
+            String[] tables = {
+                "activity_message", "user_report", "chat_message",
+                "match_request", "quiz_answer", "activity_quiz",
+                "activity_comment", "activity", "user_profile", "user"
+            };
+            for (String t : tables) {
+                try {
+                    stmt.execute("TRUNCATE TABLE " + t);
+                    log.info("数据库迁移：清空表 {} 成功", t);
+                } catch (Exception e) {
+                    // 表可能不存在，忽略
+                    log.warn("数据库迁移：清空表 {} 失败（可忽略）: {}", t, e.getMessage());
+                }
+            }
+
+            // 恢复外键检查
+            stmt.execute("SET FOREIGN_KEY_CHECKS = 1");
+
+            // 记录标记，防止下次再执行
+            stmt.execute("INSERT INTO _migration_flag (flag_key) VALUES ('purge_v2.1.0')");
+
+            log.info("数据库迁移：所有业务数据已清空完毕");
+        } catch (Exception e) {
+            log.warn("一次性数据清空异常（可忽略）: {}", e.getMessage());
+            try { stmt.execute("SET FOREIGN_KEY_CHECKS = 1"); } catch (Exception ignored) {}
         }
     }
 

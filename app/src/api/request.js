@@ -17,12 +17,16 @@ export function request({ url, method = 'GET', data = {}, needAuth = false }) {
           resolve(res.data.data)
         } else {
           const msg = res.data?.message || '请求失败'
-          uni.showToast({ title: msg, icon: 'none' })
+          // 限流/频繁请求错误静默处理
+          const isSilent = res.statusCode === 429 || msg.includes('频繁') || msg.includes('rate')
+          if (!isSilent) {
+            uni.showToast({ title: msg, icon: 'none' })
+          }
           reject(new Error(msg))
         }
       },
       fail(err) {
-        uni.showToast({ title: '网络错误', icon: 'none' })
+        // 网络错误也静默处理，避免切后台时弹提示
         reject(err)
       },
     })

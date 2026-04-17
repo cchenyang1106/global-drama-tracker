@@ -16,7 +16,8 @@
       <view v-for="item in list" :key="item.id" class="card" @tap="goDetail(item.id)">
         <view class="card-top">
           <view class="author">
-            <view class="avatar">{{ (item.authorName || '?').charAt(0) }}</view>
+            <image v-if="item.authorAvatar" :src="item.authorAvatar" class="avatar-img" mode="aspectFill" />
+            <view v-else class="avatar">{{ (item.authorName || '?').charAt(0) }}</view>
             <view>
               <text class="name">{{ item.authorName || '匿名' }}</text>
               <text class="sub">{{ item.authorCity || '' }}</text>
@@ -91,7 +92,7 @@ let unreadTimer = null
 onShow(() => {
   loadData()
   checkUnread()
-  unreadTimer = setInterval(checkUnread, 15000)
+  unreadTimer = setInterval(checkUnread, 30000)
 })
 onHide(() => {
   if (unreadTimer) { clearInterval(unreadTimer); unreadTimer = null }
@@ -126,6 +127,7 @@ async function checkUnread() {
 .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; }
 .author { display: flex; align-items: center; gap: 16rpx; }
 .avatar { width: 64rpx; height: 64rpx; border-radius: 50%; background: #f472b6; color: white; display: flex; align-items: center; justify-content: center; font-size: 28rpx; font-weight: 700; }
+.avatar-img { width: 64rpx; height: 64rpx; border-radius: 50%; flex-shrink: 0; }
 .name { font-size: 28rpx; font-weight: 600; color: #4a2040; display: block; }
 .sub { font-size: 22rpx; color: #b8929e; }
 .cat-badge { background: rgba(99,102,241,0.15); color: #f472b6; padding: 6rpx 16rpx; border-radius: 16rpx; font-size: 24rpx; }

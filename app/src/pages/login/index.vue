@@ -76,6 +76,7 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { register, login } from '@/api/auth'
+import { getMyProfile } from '@/api/profile'
 import { useUserStore } from '@/stores/user'
 import { request } from '@/api/request'
 
@@ -101,13 +102,25 @@ async function handleSubmit() {
     let data
     if (isRegister.value) {
       data = await register(form.phone, form.password, form.nickname)
-      uni.showToast({ title: '注册成功', icon: 'success' })
+      userStore.setUser(data)
+      uni.showToast({ title: '注册成功，请完善资料', icon: 'none', duration: 1500 })
+      // 注册后强制跳转到个人资料填写页
+      setTimeout(() => uni.redirectTo({ url: '/pages/profile/index?from=register' }), 500)
     } else {
       data = await login(form.phone, form.password)
+      userStore.setUser(data)
       uni.showToast({ title: '登录成功', icon: 'success' })
+      // 登录后检查是否已填写资料，没填则跳转
+      try {
+        const profileData = await getMyProfile()
+        if (!profileData || !profileData.nickname || !profileData.city) {
+          setTimeout(() => uni.redirectTo({ url: '/pages/profile/index?from=register' }), 500)
+          loading.value = false
+          return
+        }
+      } catch {}
+      setTimeout(() => uni.navigateBack(), 500)
     }
-    userStore.setUser(data)
-    setTimeout(() => uni.navigateBack(), 500)
   } catch {}
   loading.value = false
 }

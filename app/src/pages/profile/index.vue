@@ -2,7 +2,7 @@
   <view style="padding: 24rpx; background: #fff5f7; min-height: 100vh;">
     <!-- 查看他人资料 -->
     <view v-if="viewUserId && loading" style="text-align:center;padding:100rpx;color:#b8929e;">加载中...</view>
-    <view v-else-if="viewUserId && !profile.nickname && !profile.city" style="background:#fff;border-radius:20rpx;padding:60rpx;text-align:center;">
+    <view v-else-if="viewUserId && profileEmpty" style="background:#fff;border-radius:20rpx;padding:60rpx;text-align:center;">
       <text style="font-size:30rpx;color:#b8929e;display:block;">该用户暂未填写个人资料</text>
     </view>
     <view v-else-if="viewUserId" style="background: #fff; border-radius: 20rpx; padding: 32rpx;">
@@ -39,7 +39,10 @@
 
     <!-- 编辑自己资料 -->
     <view v-else style="background: #fff; border-radius: 20rpx; padding: 32rpx;">
-      <text style="display: block; font-size: 36rpx; font-weight: 800; color: #f472b6; margin-bottom: 24rpx; text-align: center;">编辑资料</text>
+      <text v-if="isFirstSetup" style="display: block; font-size: 26rpx; color: #f472b6; margin-bottom: 12rpx; text-align: center; background: #fef3f8; padding: 16rpx; border-radius: 12rpx;">
+        🎉 注册成功！请先完善基本资料，方便其他用户了解你
+      </text>
+      <text style="display: block; font-size: 36rpx; font-weight: 800; color: #f472b6; margin-bottom: 24rpx; text-align: center;">{{ isFirstSetup ? '完善个人资料' : '编辑资料' }}</text>
 
       <!-- 头像上传 -->
       <view style="text-align: center; margin-bottom: 24rpx;">
@@ -50,9 +53,9 @@
         </view>
       </view>
 
-      <view style="margin-bottom: 24rpx;"><text style="display: block; font-size: 28rpx; color: #7c5270; margin-bottom: 8rpx; font-weight: 600;">昵称</text><input v-model="form.nickname" placeholder="你的昵称" style="background: #fff5f7; border: 2rpx solid #fce4ec; border-radius: 12rpx; padding: 16rpx; color: #4a2040; font-size: 28rpx;" /></view>
+      <view style="margin-bottom: 24rpx;"><text style="display: block; font-size: 28rpx; color: #7c5270; margin-bottom: 8rpx; font-weight: 600;">昵称 <text v-if="isFirstSetup" style="color:#e11d48;">*</text></text><input v-model="form.nickname" placeholder="你的昵称（必填）" style="background: #fff5f7; border: 2rpx solid #fce4ec; border-radius: 12rpx; padding: 16rpx; color: #4a2040; font-size: 28rpx;" /></view>
       <view style="margin-bottom: 24rpx;">
-        <text style="display: block; font-size: 28rpx; color: #7c5270; margin-bottom: 8rpx; font-weight: 600;">性别</text>
+        <text style="display: block; font-size: 28rpx; color: #7c5270; margin-bottom: 8rpx; font-weight: 600;">性别 <text v-if="isFirstSetup" style="color:#e11d48;">*</text></text>
         <view style="display: flex; gap: 12rpx;">
           <text @tap="form.gender = 0" :style="'padding: 12rpx 24rpx; border-radius: 32rpx; font-size: 26rpx;' + (form.gender === 0 ? 'background: rgba(244,114,182,0.15); color: #f472b6;' : 'background: #fff5f7; color: #7c5270;')">保密</text>
           <text @tap="form.gender = 1" :style="'padding: 12rpx 24rpx; border-radius: 32rpx; font-size: 26rpx;' + (form.gender === 1 ? 'background: rgba(244,114,182,0.15); color: #f472b6;' : 'background: #fff5f7; color: #7c5270;')">男</text>
@@ -60,7 +63,7 @@
         </view>
       </view>
       <view style="margin-bottom: 24rpx;"><text style="display: block; font-size: 28rpx; color: #7c5270; margin-bottom: 8rpx; font-weight: 600;">年龄</text><input v-model="form.age" type="number" placeholder="年龄" style="background: #fff5f7; border: 2rpx solid #fce4ec; border-radius: 12rpx; padding: 16rpx; color: #4a2040; font-size: 28rpx;" /></view>
-      <view style="margin-bottom: 24rpx;"><text style="display: block; font-size: 28rpx; color: #7c5270; margin-bottom: 8rpx; font-weight: 600;">城市</text><input v-model="form.city" placeholder="例如：深圳" style="background: #fff5f7; border: 2rpx solid #fce4ec; border-radius: 12rpx; padding: 16rpx; color: #4a2040; font-size: 28rpx;" /></view>
+      <view style="margin-bottom: 24rpx;"><text style="display: block; font-size: 28rpx; color: #7c5270; margin-bottom: 8rpx; font-weight: 600;">城市 <text v-if="isFirstSetup" style="color:#e11d48;">*</text></text><input v-model="form.city" placeholder="例如：深圳（必填）" style="background: #fff5f7; border: 2rpx solid #fce4ec; border-radius: 12rpx; padding: 16rpx; color: #4a2040; font-size: 28rpx;" /></view>
       <view style="margin-bottom: 24rpx;"><text style="display: block; font-size: 28rpx; color: #7c5270; margin-bottom: 8rpx; font-weight: 600;">职业</text><input v-model="form.occupation" placeholder="例如：程序员" style="background: #fff5f7; border: 2rpx solid #fce4ec; border-radius: 12rpx; padding: 16rpx; color: #4a2040; font-size: 28rpx;" /></view>
       <view style="margin-bottom: 24rpx;"><text style="display: block; font-size: 28rpx; color: #7c5270; margin-bottom: 8rpx; font-weight: 600;">简介</text><textarea v-model="form.bio" placeholder="介绍一下自己..." maxlength="300" style="background: #fff5f7; border: 2rpx solid #fce4ec; border-radius: 12rpx; padding: 16rpx; color: #4a2040; font-size: 28rpx; width: 100%; min-height: 160rpx;" /></view>
       <view style="margin-bottom: 24rpx;"><text style="display: block; font-size: 28rpx; color: #7c5270; margin-bottom: 8rpx; font-weight: 600;">爱好（逗号分隔）</text><input v-model="form.hobbies" placeholder="旅游,摄影,健身" style="background: #fff5f7; border: 2rpx solid #fce4ec; border-radius: 12rpx; padding: 16rpx; color: #4a2040; font-size: 28rpx;" /></view>
@@ -81,22 +84,33 @@
         </view>
       </view>
 
-      <button @tap="save" :loading="saving" style="background: linear-gradient(135deg,#f472b6,#c084fc); color: white; border: none; border-radius: 12rpx; font-size: 32rpx; font-weight: 700;">保存资料</button>
+      <button @tap="save" :loading="saving" style="background: linear-gradient(135deg,#f472b6,#c084fc); color: white; border: none; border-radius: 12rpx; font-size: 32rpx; font-weight: 700;">{{ isFirstSetup ? '完成并进入' : '保存资料' }}</button>
+      <view v-if="isFirstSetup" style="text-align:center;margin-top:16rpx;">
+        <text style="font-size:24rpx;color:#b8929e;" @tap="uni.switchTab({url:'/pages/index/index'})">稍后再填，先逛逛 →</text>
+      </view>
     </view>
   </view>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { getMyProfile, saveProfile, getUserProfile } from '@/api/profile'
 
 const viewUserId = ref(null)
+const isFirstSetup = ref(false)
 const profile = ref({})
+const profileLoaded = ref(false)
 const saving = ref(false)
 const loading = ref(false)
 const photoList = ref([])
 const form = reactive({ nickname: '', avatarUrl: '', gender: 0, age: '', city: '', occupation: '', bio: '', hobbies: '', tags: '', wechat: '', showWechat: 0 })
+
+const profileEmpty = computed(() => {
+  if (!profileLoaded.value) return false
+  const p = profile.value
+  return !p.nickname && !p.city && !p.bio && !p.hobbies && !p.occupation && !p.avatarUrl && !p.age
+})
 
 function fileToBase64(filePath) {
   return new Promise((resolve) => {
@@ -149,6 +163,14 @@ function previewImage(idx) {
 }
 
 async function save() {
+  // 首次填写时校验必填项
+  if (isFirstSetup.value) {
+    if (!form.nickname.trim()) return uni.showToast({ title: '请填写昵称', icon: 'none' })
+    if (form.gender === 0 && form.gender !== 1 && form.gender !== 2) {
+      // gender === 0 is "保密", allow it but check if they explicitly chose
+    }
+    if (!form.city.trim()) return uni.showToast({ title: '请填写城市', icon: 'none' })
+  }
   saving.value = true
   try {
     await saveProfile({
@@ -156,27 +178,36 @@ async function save() {
       age: form.age ? parseInt(form.age) : null,
       photos: JSON.stringify(photoList.value),
     })
-    uni.showToast({ title: '保存成功', icon: 'success' })
     uni.setStorageSync('nickname', form.nickname)
+    if (isFirstSetup.value) {
+      uni.showToast({ title: '资料保存成功', icon: 'success' })
+      setTimeout(() => uni.switchTab({ url: '/pages/index/index' }), 800)
+    } else {
+      uni.showToast({ title: '保存成功', icon: 'success' })
+    }
   } catch {}
   saving.value = false
 }
 
 onLoad(async (options) => {
   viewUserId.value = options?.userId || null
+  if (options?.from === 'register') {
+    isFirstSetup.value = true
+    uni.setNavigationBarTitle({ title: '完善个人资料' })
+  }
   if (viewUserId.value) {
     loading.value = true
     try {
       const data = await getUserProfile(viewUserId.value)
       profile.value = data || {}
-      // 修改导航栏标题为对方昵称
+      profileLoaded.value = true
       uni.setNavigationBarTitle({ title: data?.nickname || '个人资料' })
       if (data?.photos) {
         try { photoList.value = JSON.parse(data.photos) } catch {}
       }
     } catch (e) {
       console.error('获取资料失败', e)
-      uni.showToast({ title: '获取资料失败', icon: 'none' })
+      profileLoaded.value = true
     }
     loading.value = false
   } else {

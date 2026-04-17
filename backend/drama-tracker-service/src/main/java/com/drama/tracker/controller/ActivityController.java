@@ -91,6 +91,7 @@ public class ActivityController {
                     if (profile != null) {
                         item.put("authorCity", profile.getCity());
                         item.put("authorGender", profile.getGender());
+                        item.put("authorAvatar", profile.getAvatarUrl());
                     }
                 } catch (Exception e) {
                     log.warn("加载活动{}的作者信息失败: {}", a.getId(), e.getMessage());
@@ -141,6 +142,7 @@ public class ActivityController {
                     data.put("authorAge", profile.getAge());
                     data.put("authorGender", profile.getGender());
                     data.put("authorBio", profile.getBio());
+                    data.put("authorAvatar", profile.getAvatarUrl());
                 }
             } catch (Exception e) {
                 log.warn("加载活动{}作者信息失败: {}", id, e.getMessage());
