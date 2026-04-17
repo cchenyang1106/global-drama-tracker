@@ -123,28 +123,41 @@ public class ActivityController {
     @Operation(summary = "活动详情")
     @GetMapping("/{id}")
     public Result<Map<String, Object>> getActivity(@PathVariable Long id) {
-        Activity a = activityMapper.selectById(id);
-        if (a == null) return Result.fail(404, "活动不存在");
-        // 浏览量+1
-        a.setViewCount(a.getViewCount() + 1);
-        activityMapper.updateById(a);
+        try {
+            Activity a = activityMapper.selectById(id);
+            if (a == null) return Result.fail(404, "活动不存在");
+            // 浏览量+1（null安全）
+            a.setViewCount((a.getViewCount() != null ? a.getViewCount() : 0) + 1);
+            activityMapper.updateById(a);
 
-        Map<String, Object> data = activityToMap(a);
-        User user = userMapper.selectById(a.getUserId());
-        UserProfile profile = profileMapper.selectOne(
-                new LambdaQueryWrapper<UserProfile>().eq(UserProfile::getUserId, a.getUserId()));
-        if (user != null) data.put("authorName", user.getNickname());
-        if (profile != null) {
-            data.put("authorCity", profile.getCity());
-            data.put("authorAge", profile.getAge());
-            data.put("authorGender", profile.getGender());
-            data.put("authorBio", profile.getBio());
+            Map<String, Object> data = activityToMap(a);
+            try {
+                User user = userMapper.selectById(a.getUserId());
+                UserProfile profile = profileMapper.selectOne(
+                        new LambdaQueryWrapper<UserProfile>().eq(UserProfile::getUserId, a.getUserId()));
+                if (user != null) data.put("authorName", user.getNickname());
+                if (profile != null) {
+                    data.put("authorCity", profile.getCity());
+                    data.put("authorAge", profile.getAge());
+                    data.put("authorGender", profile.getGender());
+                    data.put("authorBio", profile.getBio());
+                }
+            } catch (Exception e) {
+                log.warn("加载活动{}作者信息失败: {}", id, e.getMessage());
+            }
+            // 题目数量
+            try {
+                Long quizCount = quizMapper.selectCount(new LambdaQueryWrapper<ActivityQuiz>()
+                        .eq(ActivityQuiz::getActivityId, a.getId()));
+                data.put("quizCount", quizCount);
+            } catch (Exception e) {
+                data.put("quizCount", 0);
+            }
+            return Result.success(data);
+        } catch (Exception e) {
+            log.error("活动详情查询失败: {}", e.getMessage(), e);
+            return Result.fail("加载失败: " + e.getMessage());
         }
-        // 题目数量
-        Long quizCount = quizMapper.selectCount(new LambdaQueryWrapper<ActivityQuiz>()
-                .eq(ActivityQuiz::getActivityId, a.getId()));
-        data.put("quizCount", quizCount);
-        return Result.success(data);
     }
 
     /**
